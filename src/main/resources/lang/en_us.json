@@ -1,0 +1,9 @@
+{
+  "missing_translation": "**TR_ERROR**",
+
+  "lesson_not_found": "No lesson found right now!",
+  "lesson_print": "Right now: {}",
+
+  "download_success": "Data successfully updated!",
+  "download_failed": "Something went wrong while trying to update!"
+}
