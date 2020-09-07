@@ -2,6 +2,7 @@ package pl.szymon.btt_bot.bot;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import lombok.ToString;
 import org.apache.logging.log4j.message.MessageFactory;
 import org.apache.logging.log4j.message.ParameterizedMessageFactory;
 
@@ -10,6 +11,7 @@ import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Objects;
 
+@ToString
 public class TranslatableText {
     private static final MessageFactory messageFactory = new ParameterizedMessageFactory();
     private static Language language;

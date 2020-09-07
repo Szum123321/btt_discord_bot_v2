@@ -1,7 +1,5 @@
 package pl.szymon.btt_bot.structures.time;
 
-import lombok.ToString;
-
 public enum PeriodType {
     LESSON(0, "Lesson"),
     PAUSE(1, "Pause");

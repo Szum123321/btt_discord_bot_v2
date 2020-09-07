@@ -3,7 +3,6 @@ package pl.szymon.btt_bot.structures.time;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Log4j2
 public class PointRangeTimePeriodTree<P extends Comparable<P>, R extends AbstractComparableRange<P>> {
@@ -19,7 +18,9 @@ public class PointRangeTimePeriodTree<P extends Comparable<P>, R extends Abstrac
 
         tree[0] = null;
 
-        System.arraycopy(inputArray.stream().sorted().toArray(), 0, tree, halfSize, inputArray.size());
+        System.arraycopy(inputArray.toArray(), 0, tree, halfSize, inputArray.size());
+
+        Arrays.sort(tree, halfSize, halfSize + inputArray.size());
 
         for(int i = halfSize - 1; i > 0; i--) {
             if(tree[i * 2] != null && tree[i * 2 + 1] != null)

@@ -68,7 +68,6 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 				if(!substitutions.isEmpty()) {
 					final LocalDate finalLocalDate = localDate;
 					substitutions.forEach(substitution -> {
-						log.info(substitution);
 						for(int i = substitution.getStartPeriod(); i <= substitution.getEndPeriod(); i++) {
 							builder.getLessons()[finalLocalDate.getDayOfWeek().ordinal()].get(i).forEach(lesson -> lesson.setInfo(substitution.getInfo()));
 							//builder.getLessons()[i][finalLocalDate.getDayOfWeek().ordinal()].forEach(lesson -> lesson.setInfo(substitution.getInfo()));

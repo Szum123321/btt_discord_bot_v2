@@ -11,7 +11,7 @@ import java.util.Collection;
  * @param <E> the type of elements in this list
  */
 public class NoThrowArrayList<E> extends ArrayList<E> {
-    private E defaultObject;
+    private final E defaultObject;
 
     public NoThrowArrayList(E defaultObject) {
         this.defaultObject = defaultObject;

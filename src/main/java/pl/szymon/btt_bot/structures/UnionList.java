@@ -13,7 +13,7 @@ public class UnionList<E> implements List<E> {
     private final List<E>[] data;
     private int[] sizeList;
     private int size;
-
+/*
     public UnionList(List<E>... data) {
         this.sizeList = new int[data.length];
         int size1 = 0;
@@ -26,6 +26,15 @@ public class UnionList<E> implements List<E> {
         size = size1;
 
         this.data = data;
+    }
+*/
+
+    public UnionList(List<E> data1, List<E> data2) {
+        this.sizeList = new int[]{data1.size(), data2.size()};
+
+        size = data1.size() + data2.size();
+
+        this.data = new List[]{data1, data2};
     }
 
     private IntPair getArrayId(int index) {
@@ -189,6 +198,7 @@ public class UnionList<E> implements List<E> {
         return new Itr(index);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     @Deprecated
     public List<E> subList(int fromIndex, int toIndex) {

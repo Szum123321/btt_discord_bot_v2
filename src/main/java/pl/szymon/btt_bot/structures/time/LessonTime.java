@@ -35,10 +35,10 @@ public class LessonTime extends LocalTimeRange {
     public TranslatableText print() {
         switch (type) {
             case LESSON:
-                return new TranslatableText("lessontime_lesson_print_format", id);
+                return new TranslatableText("lessontime_lesson_print_format", id, getStart(), getEnd());
 
             case PAUSE:
-                return new TranslatableText("lessontime_pause_print_format", id, getDuration().toMinutes());
+                return new TranslatableText("lessontime_pause_print_format", id, getDuration().toMinutes(), getStart(), getEnd());
 
             default:
                 return new TranslatableText("missing_translation");

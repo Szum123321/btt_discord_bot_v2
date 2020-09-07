@@ -134,7 +134,7 @@ public class TypeDeclarationsDownloader {
 
 		NoThrowArrayList<LessonTime> pauseTimeList = new NoThrowArrayList<>(lessonTimeList.size() - 1);
 
-		for(int i = 1; i < lessonTimeList.size() - 1; i++)
+		for(int i = 0; i < lessonTimeList.size() - 1; i++)
 			pauseTimeList.add(LessonTime.newPause(lessonTimeList.get(i).getEnd(), lessonTimeList.get(i + 1).getStart(), i));
 
 		builder.setPauseTimes(pauseTimeList);

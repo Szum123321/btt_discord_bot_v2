@@ -37,6 +37,7 @@ public class CompleteTimetable {
     Map<Integer, LessonGroup>[] lessonGroups;
 
     public void bake() {
+        //noinspection unchecked
         lessonGroups = new HashMap[5];
 
         for(int i = 0; i < 5; i++) {

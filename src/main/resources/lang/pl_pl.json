@@ -1,16 +1,17 @@
 {
   "missing_translation": "**TR_ERROR**",
+  "generic_help": "Dostępne komendy to: ping, help, update, next(zwraca następną lekcje), przerwa(zwraca następną przerwe), jutro, dzisiaj, teraz.",
 
-  "update_success": "Update zakończony sukcesem!",
+  "download_success": "Update zakończony sukcesem!",
   "download_failed": "Update nie powiódł się!",
 
   "generic_not_found": "Nic nie znaleziono.",
-
   "lesson_not_found": "Nie znaleziono lekcji!",
+
   "lesson_print": "Teraz: {}",
 
-  "lessontime_lesson_print_format": "Lekcja nr {}",
-  "lessontime_pause_print_format": "Przerwa nr. {} o dł. {} min",
+  "lessontime_lesson_print_format": "Lekcja nr. {}, {} - {}",
+  "lessontime_pause_print_format": "Przerwa nr. {}, {} minut, {} - {}",
 
   "it_is_weekend": "Jest weekend!"
 }

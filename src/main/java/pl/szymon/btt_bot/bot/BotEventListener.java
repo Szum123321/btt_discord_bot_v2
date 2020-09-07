@@ -62,6 +62,8 @@ public class BotEventListener extends ListenerAdapter {
             if(e.getType() != CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()) {
                 event.getMessage().getChannel().sendMessage(e.getMessage()).queue();
             }
+        } catch (RuntimeException e) {
+            log.error(e);
         }
     }
 
@@ -72,6 +74,14 @@ public class BotEventListener extends ListenerAdapter {
                             ctx.getSource().getChannel().sendMessage("Pong!").queue();
                             return 0;
                         })
+        );
+
+        dispatcher.register(
+                literal("help")
+                    .executes(ctx -> {
+                        ctx.getSource().getChannel().sendMessage(new TranslatableText("generic_help").getString()).queue();
+                        return 0;
+                    })
         );
 
         dispatcher.register(
@@ -98,7 +108,11 @@ public class BotEventListener extends ListenerAdapter {
 
                             if(lessonGroup != null) {
                                 ctx.getSource().getChannel().sendMessage(lessonGroup.print()).queue();
+                            } else {
+                                ctx.getSource().getChannel().sendMessage(new TranslatableText("lesson_not_found").getString()).queue();
                             }
+                        } else {
+                            ctx.getSource().getChannel().sendMessage(new TranslatableText("generic_not_found").getString()).queue();
                         }
 
                         return 0;
@@ -106,7 +120,7 @@ public class BotEventListener extends ListenerAdapter {
        );
 
        dispatcher.register(
-               literal("pause")
+               literal("przerwa")
                        .executes(ctx -> {
                            Optional<LessonTime> lessonTime = getLessonTime(ctx);
 
@@ -115,11 +129,16 @@ public class BotEventListener extends ListenerAdapter {
                                    LessonTime pause = botDataHandler.get().getPauseTimes().get(lessonTime.get().getId());
                                    if(pause != null) {
                                        ctx.getSource().getChannel().sendMessage(pause.print().getString()).queue();
+                                   } else {
+                                       ctx.getSource().getChannel().sendMessage(new TranslatableText("generic_not_found").getString()).queue();
                                    }
                                } else {
                                    ctx.getSource().getChannel().sendMessage(lessonTime.get().print().getString()).queue();
                                }
+                           } else {
+                               ctx.getSource().getChannel().sendMessage(new TranslatableText("generic_not_found").getString()).queue();
                            }
+
                            return 0;
                        })
        );

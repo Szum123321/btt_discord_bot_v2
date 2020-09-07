@@ -52,6 +52,7 @@ public class ProperTimetableDownloader {
 				.registerTypeAdapter(LocalTime.class, (JsonDeserializer<LocalTime>) (json, typeOfT, context) -> LocalTime.parse(json.getAsString()))
 				.create();
 
+		@SuppressWarnings("unchecked")
 		Map<Integer, List<Lesson>>[] tempMap = new HashMap[5];
 
 		for(int i = 0; i < 5; i++)
