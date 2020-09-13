@@ -1,6 +1,6 @@
 {
   "missing_translation": "**TR_ERROR**",
-  "generic_help": "Dostępne komendy to: ping, help, update, next(zwraca następną lekcje), przerwa(zwraca następną przerwe), jutro, dzisiaj, teraz.",
+  "generic_help": "Dostępne komendy to: ping, help, update, next(zwraca następną lekcje), przerwa(zwraca następną przerwe), p (shortcut do przerwa) jutro, dzisiaj, teraz.",
 
   "download_success": "Update zakończony sukcesem!",
   "download_failed": "Update nie powiódł się!",

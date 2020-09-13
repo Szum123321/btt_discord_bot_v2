@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import lombok.extern.log4j.Log4j2;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -48,9 +49,9 @@ public class BotEventListener extends ListenerAdapter {
         if(event.getAuthor().isBot())
             return;
 
-        String content;
+        String content = message.getContentRaw();
 
-        if(message.getContentRaw().startsWith("!")) {
+        if(content.startsWith("!")) {
             content = message.getContentRaw().substring(1);
         } else {
             return;
@@ -68,7 +69,7 @@ public class BotEventListener extends ListenerAdapter {
     }
 
     private void registerCommands() {
-        dispatcher.register(
+        LiteralCommandNode<Message> pingNode = dispatcher.register(
                 literal("ping")
                         .executes(ctx -> {
                             ctx.getSource().getChannel().sendMessage("Pong!").queue();
@@ -119,7 +120,7 @@ public class BotEventListener extends ListenerAdapter {
                     })
        );
 
-       dispatcher.register(
+       LiteralCommandNode<Message> przerwaNode = dispatcher.register(
                literal("przerwa")
                        .executes(ctx -> {
                            Optional<LessonTime> lessonTime = getLessonTime(ctx);
@@ -191,6 +192,9 @@ public class BotEventListener extends ListenerAdapter {
                     return 0;
                 })
         );
+
+        //redirecty nie działają na komendach bez argumentu
+        dispatcher.register(literal("p").executes(przerwaNode.getCommand()));
     }
 
     private void printWholeDay(int dayOfWeek, CommandContext<Message> ctx) {
