@@ -6,18 +6,32 @@ import pl.szymon.btt_bot.async.UpdateLessonsCallable;
 import pl.szymon.btt_bot.structures.CompleteTimetable;
 
 import java.io.IOException;
+import java.time.LocalTime;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
 public class BotDataHandler {
-    public static final PrintHandler DEFAULT_PRINT_HANDLER = (level, text) -> log.log(level, text.getString());
+    private final static int DAY_CONST = 86400; // 60 * 60 * 24
+    public static final PrintHandler LOG_PRINT_HANDLER = (level, text) -> log.log(level, text.getString());
 
     private final AtomicReference<CompleteTimetable> completeTimetableAtomicReference = new AtomicReference<>();
+    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(runnable -> new Thread(runnable, "DATA_UPDATE_THREAD"));
 
     private final String klassName;
 
     public BotDataHandler(String klassName) {
         this.klassName = klassName;
+
+        executorService.scheduleAtFixedRate(
+                updateData(LOG_PRINT_HANDLER),
+                DAY_CONST - LocalTime.now().toSecondOfDay(),
+                DAY_CONST,
+                TimeUnit.SECONDS
+        );
+
     }
 
     public CompleteTimetable get() {

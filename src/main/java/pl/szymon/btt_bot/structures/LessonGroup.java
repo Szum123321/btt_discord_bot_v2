@@ -68,6 +68,9 @@ public class LessonGroup {
         for (int i = 1; i < lesson.getTeachers().size(); i++)
             builder.append(", ").append(lesson.getTeachers().get(i).print());
 
+        if(lesson.getInfo() != null)
+            builder.append(", Uwaga: ").append(lesson.getInfo());
+
         builder.append("\n");
     }
 

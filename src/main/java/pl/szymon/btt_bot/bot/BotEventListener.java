@@ -36,7 +36,7 @@ public class BotEventListener extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
-        botDataHandler.updateData(BotDataHandler.DEFAULT_PRINT_HANDLER).run();
+        botDataHandler.updateData(BotDataHandler.LOG_PRINT_HANDLER).run();
 
         log.info("Bot Ready. Available {} guilds", event.getGuildAvailableCount());
     }
@@ -199,10 +199,20 @@ public class BotEventListener extends ListenerAdapter {
 
             botDataHandler.get().getLessonGroups()[dayOfWeek].values().forEach(lessonGroup -> builder.append(lessonGroup.getLessonTime().print().getString()).append(": ").append(lessonGroup.print()).append("\n"));
 
-            ctx.getSource().getChannel().sendMessage(builder.toString()).queue();
+            sendLongMessage(builder.toString(), ctx);
         } else {
             ctx.getSource().getChannel().sendMessage(new TranslatableText("it_is_weekend").getString()).queue();
         }
+    }
+
+    private void sendLongMessage(String str, CommandContext<Message> ctx) {
+        while(str.length() >= 2000) {
+            ctx.getSource().getChannel().sendMessage(str.substring(0, 1999)).queue();
+            str = str.substring(2000, str.length() - 1);
+        }
+
+        if(str.length() > 0)
+            ctx.getSource().getChannel().sendMessage(str).queue();
     }
 
     private Optional<LessonTime> getLessonTime(CommandContext<Message> ctx) {
