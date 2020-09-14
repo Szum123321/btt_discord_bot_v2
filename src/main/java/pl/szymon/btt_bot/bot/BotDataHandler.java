@@ -2,6 +2,7 @@ package pl.szymon.btt_bot.bot;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
+import org.jetbrains.annotations.NotNull;
 import pl.szymon.btt_bot.async.UpdateLessonsCallable;
 import pl.szymon.btt_bot.structures.CompleteTimetable;
 
@@ -9,7 +10,9 @@ import java.io.IOException;
 import java.time.LocalTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
@@ -18,7 +21,7 @@ public class BotDataHandler {
     public static final PrintHandler LOG_PRINT_HANDLER = (level, text) -> log.log(level, text.getString());
 
     private final AtomicReference<CompleteTimetable> completeTimetableAtomicReference = new AtomicReference<>();
-    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(runnable -> new Thread(runnable, "DATA_UPDATE_THREAD"));
+    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new PrefixedThreadFactory("DATA_UPDATE_THREAD"));
 
     private final String klassName;
 
@@ -75,6 +78,20 @@ public class BotDataHandler {
 
         default void error(TranslatableText text) {
             print(Level.ERROR, text);
+        }
+    }
+
+    private static class PrefixedThreadFactory implements ThreadFactory {
+        private final AtomicInteger counter = new AtomicInteger(1);
+        private final String prefix;
+
+        public PrefixedThreadFactory(String prefix) {
+            this.prefix = prefix;
+        }
+
+        @Override
+        public Thread newThread(@NotNull Runnable r) {
+            return new Thread(r, prefix + "_" + counter.getAndIncrement());
         }
     }
 }
