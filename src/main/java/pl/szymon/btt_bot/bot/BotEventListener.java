@@ -2,10 +2,12 @@ package pl.szymon.btt_bot.bot;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import lombok.extern.log4j.Log4j2;
 import net.dv8tion.jda.api.entities.Message;
@@ -69,7 +71,7 @@ public class BotEventListener extends ListenerAdapter {
     }
 
     private void registerCommands() {
-        LiteralCommandNode<Message> pingNode = dispatcher.register(
+        dispatcher.register(
                 literal("ping")
                         .executes(ctx -> {
                             ctx.getSource().getChannel().sendMessage("Pong!").queue();
@@ -79,10 +81,42 @@ public class BotEventListener extends ListenerAdapter {
 
         dispatcher.register(
                 literal("help")
-                    .executes(ctx -> {
-                        ctx.getSource().getChannel().sendMessage(new TranslatableText("generic_help").getString()).queue();
-                        return 0;
-                    })
+                        .then(
+                                argument("command", StringArgumentType.word())
+                                .executes(ctx -> {
+                                    CommandNode<Message> commandNode = dispatcher.getRoot().getChild(StringArgumentType.getString(ctx, "command"));
+
+                                    if(commandNode == null) {
+                                        ctx.getSource().getChannel().sendMessage(new TranslatableText("command_not_found").getString()).queue();
+                                        return 0;
+                                    }
+
+                                    if(commandNode.getRedirect() != null) {
+                                        ctx.getSource().getChannel().sendMessage(
+                                                new TranslatableText("help_" + commandNode.getRedirect().getName()).getString()
+                                        ).queue();
+                                    } else {
+                                        ctx.getSource().getChannel().sendMessage(
+                                                new TranslatableText("help_" + commandNode.getName()).getString()
+                                        ).queue();
+                                    }
+
+                                    return 0;
+                                })
+                        )
+                        .executes(ctx -> {
+                            StringBuilder builder = new StringBuilder();
+
+                            dispatcher.getRoot().getChildren().stream()
+                                    .filter(commandNode -> commandNode instanceof LiteralCommandNode)
+                                    .forEach(commandNode -> {
+                                        builder.append(commandNode.getName()).append(",\n");
+                                    });
+
+                            ctx.getSource().getChannel().sendMessage(new TranslatableText("help_generic", builder.toString()).getString()).queue();
+
+                            return 0;
+                        })
         );
 
         dispatcher.register(
@@ -120,7 +154,7 @@ public class BotEventListener extends ListenerAdapter {
                     })
        );
 
-       LiteralCommandNode<Message> przerwaNode = dispatcher.register(
+       dispatcher.register(
                literal("przerwa")
                        .executes(ctx -> {
                            Optional<LessonTime> lessonTime = getLessonTime(ctx);
@@ -194,7 +228,13 @@ public class BotEventListener extends ListenerAdapter {
         );
 
         //redirecty nie działają na komendach bez argumentu
-        dispatcher.register(literal("p").executes(przerwaNode.getCommand()));
+        dispatcher.register(literal("p").redirect(dispatcher.getRoot().getChild("przerwa")).executes(dispatcher.getRoot().getChild("przerwa").getCommand()));
+
+        dispatcher.register(literal("n").redirect(dispatcher.getRoot().getChild("next")).executes(dispatcher.getRoot().getChild("next").getCommand()));
+
+        dispatcher.register(literal("j").redirect(dispatcher.getRoot().getChild("jutro")).executes(dispatcher.getRoot().getChild("jutro").getCommand()));
+
+        dispatcher.register(literal("t").redirect(dispatcher.getRoot().getChild("teraz")).executes(dispatcher.getRoot().getChild("teraz").getCommand()));
     }
 
     private void printWholeDay(int dayOfWeek, CommandContext<Message> ctx) {

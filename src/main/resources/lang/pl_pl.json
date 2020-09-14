@@ -1,6 +1,16 @@
 {
   "missing_translation": "**TR_ERROR**",
-  "generic_help": "Dostępne komendy to: ping, help, update, next(zwraca następną lekcje), przerwa(zwraca następną przerwe), p (shortcut do przerwa) jutro, dzisiaj, teraz.",
+
+  "help_generic": "Dostępne komendy to: {}",
+
+  "help_help": "Wypisuje dostępne komendy.",
+  "help_ping": "Do debuggowania.",
+  "help_update": "Updateuje dane.",
+  "help_next": "Wypisuje następną lekcje.",
+  "help_przerwa": "Wypisuje następną przerwe.",
+  "help_jutro": "Wypisuje wszystkie lekcje następnego dnia.",
+  "help_dzisiaj": "Wypisuje wszystkie lekcje tego samego dnia.",
+  "help_teraz": "Wypisuje co jest w tym momęcie.",
 
   "download_success": "Update zakończony sukcesem!",
   "download_failed": "Update nie powiódł się!",
