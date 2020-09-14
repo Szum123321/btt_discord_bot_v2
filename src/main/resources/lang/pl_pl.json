@@ -1,7 +1,7 @@
 {
   "missing_translation": "**TR_ERROR**",
 
-  "help_generic": "Dostępne komendy to: {}",
+  "help_generic": "Dostępne komendy to: \n{}",
 
   "help_help": "Wypisuje dostępne komendy.",
   "help_ping": "Do debuggowania.",

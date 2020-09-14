@@ -110,7 +110,7 @@ public class BotEventListener extends ListenerAdapter {
                             dispatcher.getRoot().getChildren().stream()
                                     .filter(commandNode -> commandNode instanceof LiteralCommandNode)
                                     .forEach(commandNode -> {
-                                        builder.append(commandNode.getName()).append(",\n");
+                                        builder.append(commandNode.getName()).append(", ");
                                     });
 
                             ctx.getSource().getChannel().sendMessage(new TranslatableText("help_generic", builder.toString()).getString()).queue();
