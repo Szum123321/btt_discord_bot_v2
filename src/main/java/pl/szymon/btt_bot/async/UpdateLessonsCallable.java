@@ -68,10 +68,23 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 				if(!substitutions.isEmpty()) {
 					final LocalDate finalLocalDate = localDate;
 					substitutions.forEach(substitution -> {
-						for(int i = substitution.getStartPeriod(); i <= substitution.getEndPeriod(); i++) {
-							builder.getLessons()[finalLocalDate.getDayOfWeek().ordinal()].get(i).forEach(lesson -> lesson.setInfo(substitution.getInfo()));
-							//builder.getLessons()[i][finalLocalDate.getDayOfWeek().ordinal()].forEach(lesson -> lesson.setInfo(substitution.getInfo()));
-							counter.getAndIncrement();
+						String[] pattern = substitution.getWhat().split(":");
+
+						if(pattern.length == 2) {
+							String gr = pattern[0];
+
+							for(int i = substitution.getStartPeriod(); i <= substitution.getEndPeriod(); i++) {
+								builder.getLessons()[finalLocalDate.getDayOfWeek().ordinal()].get(i)
+										.stream()
+										.filter(lesson ->contains(lesson.getGroupNames(), gr))
+										.forEach(lesson -> lesson.setInfo(substitution.getInfo()));
+								counter.getAndIncrement();
+							}
+						} else {
+							for (int i = substitution.getStartPeriod(); i <= substitution.getEndPeriod(); i++) {
+								builder.getLessons()[finalLocalDate.getDayOfWeek().ordinal()].get(i).forEach(lesson -> lesson.setInfo(substitution.getInfo()));
+								counter.getAndIncrement();
+							}
 						}
 					});
 				}
@@ -94,5 +107,13 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 		log.info("Done!");
 
 		return result;
+	}
+
+	private static boolean contains(String[] tab, String key) {
+		for(String s: tab)
+			if(s.equals(key))
+				return true;
+
+		return false;
 	}
 }
