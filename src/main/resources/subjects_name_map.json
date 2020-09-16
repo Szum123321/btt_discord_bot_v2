@@ -7,6 +7,8 @@
   "JF": "Język Francuski",
   "WF": "Wychowanie Fizyczne",
   "R": "Religia",
+  "E": "Etyka",
+  "fil": "Filozofia",
   "INF": "Informatyka",
   "JADw": "Język Angielski Dwujęzyczny",
   "WOS": "Wiedza o Społeczeństwie",
@@ -20,7 +22,6 @@
   "Ch": "Chemia",
   "MD": "Matematyka Dwujęzyczna",
   "WdŻG": "Wychowanie do Życia w Rodzinie",
-
   "Edb": "Edukacja dla Bezpieczeństwa",
   "HiS": "Historia Społeczeństwa"
 }
