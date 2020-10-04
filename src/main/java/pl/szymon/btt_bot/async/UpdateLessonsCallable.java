@@ -50,6 +50,8 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 
 		log.info("Selected timetable version is: {}", timetableVersion);
 
+		builder.setTeacherNames(TeacherNameDownloader.get(networkContext));
+
 		TypeDeclarationsDownloader.get(networkContext, timetableVersion, builder, klassName);
 
 		ProperTimetableDownloader.get(networkContext, timetableVersion, builder);

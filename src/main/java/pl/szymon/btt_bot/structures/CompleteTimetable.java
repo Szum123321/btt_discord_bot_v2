@@ -81,6 +81,9 @@ public class CompleteTimetable {
         final Map<Integer, Klasa> classes;
 
         @Setter
+        ImmutableMap<String, Teacher.TeacherName> teacherNames;
+
+        @Setter
         LocalDate dateSince;
 
         @Setter

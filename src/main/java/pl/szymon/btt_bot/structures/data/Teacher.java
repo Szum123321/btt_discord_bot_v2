@@ -10,7 +10,6 @@ import java.util.Optional;
 public class Teacher {
 	TeacherId id;
 
-	@Nullable
 	TeacherName fullName;
 
 	public int getId() {
@@ -21,39 +20,26 @@ public class Teacher {
 		return id.getShortName();
 	}
 
-	public Optional<TeacherName> getFullName() {
-		return Optional.ofNullable(fullName);
+	public TeacherName getFullName() {
+		return fullName;
 	}
 
 	public String print() {
-		if(fullName != null) {
-			return fullName.getFirstName() + " " + fullName.getLastName();
-		}
-		return id.shortName;
+		return fullName.getFirstName() + " " + fullName.getLastName();
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-
-		builder.append("Teacher(")
-				.append("id=")
-				.append(getId())
-				.append(", short=")
-				.append(getShortName());
-
-		if(getFullName().isPresent()) {
-			builder.append(", firstName=")
-					.append(getFullName().get().getFirstName())
-					.append(", lastName=")
-					.append(getFullName().get().getLastName());
-		} else {
-			builder.append(", fullName=null");
-		}
-
-		builder.append(")");
-
-		return builder.toString();
+		return "Teacher(" +
+				"id=" +
+				getId() +
+				", short=" +
+				getShortName() +
+				", firstName=" +
+				getFullName().getFirstName() +
+				", lastName=" +
+				getFullName().getLastName() +
+				")";
 	}
 
 	@Value

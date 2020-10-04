@@ -46,12 +46,6 @@ public class TypeDeclarationsDownloader {
 			throw new NetworkStatusCodeException(httpResponse.statusCode());
 		}
 
-		Map<String, Teacher.TeacherName> teacherNameMap;
-
-		try (InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(TypeDeclarationsDownloader.class.getClassLoader().getResourceAsStream("teachers_name_map.json")))) {
-			teacherNameMap = gson.fromJson(reader, new TypeToken<Map<String, Teacher.TeacherName>>(){}.getType());
-		}
-
 		Map<String, String> subjectNameMap;
 
 		try(InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(TypeDeclarationsDownloader.class.getClassLoader().getResourceAsStream("subjects_name_map.json")))) {
@@ -79,7 +73,7 @@ public class TypeDeclarationsDownloader {
 
 							builder.addTeacher(new Teacher(
 									gson.fromJson(jsonObject, Teacher.TeacherId.class),
-									teacherNameMap.get(jsonObject.get("short").getAsString())
+									builder.getTeacherNames().get(jsonObject.get("short").getAsString())
 							));
 						});
 						break;
