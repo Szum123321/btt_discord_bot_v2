@@ -70,8 +70,6 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 					substitutions.forEach(substitution -> {
 						String[] pattern = substitution.getWhat().split(":");
 
-						log.info("What: {}, info: {}", substitution.getWhat(), substitution.getInfo());
-
 						if(pattern.length == 2) {
 							String gr = pattern[0];
 
