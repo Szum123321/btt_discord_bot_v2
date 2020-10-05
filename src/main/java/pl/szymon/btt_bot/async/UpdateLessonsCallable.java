@@ -32,8 +32,6 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 
 		TimetableVersionArray versionArray = TimetableVersionArrayDownloader.get(networkContext);
 
-		log.info("Default timetable version id: {}", versionArray.getDefaultNum());
-
 		CompleteTimetable.Builder builder = new CompleteTimetable.Builder();
 
 		TimetableVersion timetableVersion = versionArray
@@ -72,13 +70,15 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 					substitutions.forEach(substitution -> {
 						String[] pattern = substitution.getWhat().split(":");
 
+						log.info("What: {}, info: {}", substitution.getWhat(), substitution.getInfo());
+
 						if(pattern.length == 2) {
 							String gr = pattern[0];
 
 							for(int i = substitution.getStartPeriod(); i <= substitution.getEndPeriod(); i++) {
 								builder.getLessons()[finalLocalDate.getDayOfWeek().ordinal()].get(i)
 										.stream()
-										.filter(lesson ->contains(lesson.getGroupNames(), gr))
+										.filter(lesson -> contains(lesson.getGroupNames(), gr))
 										.forEach(lesson -> lesson.setInfo(substitution.getInfo()));
 								counter.getAndIncrement();
 							}
@@ -92,7 +92,7 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 				}
 			} catch (IOException e) {
 				if(retryCounter < 3) {
-					log.info("An network exception occurred while trying to download substitutions for {}. Retrying...", localDate);
+					log.info("A network exception occurred while trying to download substitutions for {}. Retrying...", localDate);
 					retryCounter++;
 					localDate = localDate.minusDays(1);
 				} else {

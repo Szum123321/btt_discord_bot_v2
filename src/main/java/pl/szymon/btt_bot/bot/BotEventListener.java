@@ -39,7 +39,7 @@ public class BotEventListener extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
-        botDataHandler.updateData(BotDataHandler.LOG_PRINT_HANDLER).run();
+        botDataHandler.updateData(BotDataHandler.DEFAULT_LOG_PRINT_HANDLER).run();
 
         log.info("Bot Ready. Available {} guilds", event.getGuildAvailableCount());
     }
@@ -65,8 +65,8 @@ public class BotEventListener extends ListenerAdapter {
             if(e.getType() != CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()) {
                 event.getMessage().getChannel().sendMessage(e.getMessage()).queue();
             }
-        } catch (RuntimeException e) {
-            log.error(e);
+        } catch (Exception e) {
+            log.error("An exception occurred!", e);
         }
     }
 

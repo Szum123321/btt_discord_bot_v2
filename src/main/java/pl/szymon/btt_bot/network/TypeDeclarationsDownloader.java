@@ -56,73 +56,68 @@ public class TypeDeclarationsDownloader {
 
 		String responseBody = httpResponse.body();
 
-		try {
-			JsonArray rootArray = JsonParser.parseString(responseBody)
-					.getAsJsonObject()
-					.getAsJsonObject("r")
-					.getAsJsonArray("tables");
+		JsonArray rootArray = JsonParser.parseString(responseBody)
+				.getAsJsonObject()
+				.getAsJsonObject("r")
+				.getAsJsonArray("tables");
 
-			rootArray.forEach(jsonElement -> {
-				String id = jsonElement.getAsJsonObject().get("id").getAsString();
-				JsonArray dataRows = jsonElement.getAsJsonObject().getAsJsonArray("data_rows");
+		rootArray.forEach(jsonElement -> {
+			String id = jsonElement.getAsJsonObject().get("id").getAsString();
+			JsonArray dataRows = jsonElement.getAsJsonObject().getAsJsonArray("data_rows");
 
-				switch(id) {
-					case "teachers": {
-						dataRows.forEach(jsonElement1 -> {
-							JsonObject jsonObject = jsonElement1.getAsJsonObject();
+			switch(id) {
+				case "teachers": {
+					dataRows.forEach(jsonElement1 -> {
+						JsonObject jsonObject = jsonElement1.getAsJsonObject();
 
-							builder.addTeacher(new Teacher(
-									gson.fromJson(jsonObject, Teacher.TeacherId.class),
-									builder.getTeacherNames().get(jsonObject.get("short").getAsString())
-							));
-						});
-						break;
-					}
-
-					case "subjects": {
-						dataRows.forEach(jsonElement1 -> {
-							JsonObject jsonObject = jsonElement1.getAsJsonObject();
-							jsonObject.addProperty("name", subjectNameMap.get(jsonObject.get("short").getAsString()));
-							builder.addSubject(gson.fromJson(jsonObject, Subject.class));
-						});
-						break;
-					}
-
-					case "classrooms": {
-						dataRows.forEach(jsonElement1 -> builder.addClassroom(gson.fromJson(jsonElement1, Classroom.class)));
-						break;
-					}
-
-					case "classes": {
-						dataRows.forEach(jsonElement1 -> {
-							Klasa klasa = gson.fromJson(jsonElement1, Klasa.class);
-							builder.addClass(klasa);
-
-							if(klasa.getName().equals(klassName))
-								builder.setKlasaId(klasa.getId());
-						});
-						break;
-					}
-
-					case "periods": {
-						dataRows.forEach(jsonElement1 -> {
-							try {
-								lessonTimeList.add(LessonTime.fromPeriod(gson.fromJson(jsonElement1, Period.class)));
-							} catch (DateTimeParseException ignored) {} //For some reason timetable sends empty periods, which now, I have to deal with!
-						});
-						break;
-					}
-
-					default: {
-						log.trace("Skipping: {}", id);
-						break;
-					}
+						builder.addTeacher(new Teacher(
+								gson.fromJson(jsonObject, Teacher.TeacherId.class),
+								builder.getTeacherNames().get(jsonObject.get("short").getAsString())
+						));
+					});
+					break;
 				}
-			});
-		} catch (RuntimeException e) {
-			log.error(e);
-			throw e;
-		}
+
+				case "subjects": {
+					dataRows.forEach(jsonElement1 -> {
+						JsonObject jsonObject = jsonElement1.getAsJsonObject();
+						jsonObject.addProperty("name", subjectNameMap.get(jsonObject.get("short").getAsString()));
+						builder.addSubject(gson.fromJson(jsonObject, Subject.class));
+					});
+					break;
+				}
+
+				case "classrooms": {
+					dataRows.forEach(jsonElement1 -> builder.addClassroom(gson.fromJson(jsonElement1, Classroom.class)));
+					break;
+				}
+
+				case "classes": {
+					dataRows.forEach(jsonElement1 -> {
+						Klasa klasa = gson.fromJson(jsonElement1, Klasa.class);
+						builder.addClass(klasa);
+
+						if(klasa.getName().equals(klassName))
+							builder.setKlasaId(klasa.getId());
+					});
+					break;
+				}
+
+				case "periods": {
+					dataRows.forEach(jsonElement1 -> {
+						try {
+							lessonTimeList.add(LessonTime.fromPeriod(gson.fromJson(jsonElement1, Period.class)));
+						} catch (DateTimeParseException ignored) {} //For some reason timetable sends empty periods, which now, I have to deal with!
+					});
+					break;
+				}
+
+				default: {
+					log.trace("Skipping: {}", id);
+					break;
+				}
+			}
+		});
 
 		lessonTimeList.sort(Comparator.comparing(LocalTimeRange::getStart));
 

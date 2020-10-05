@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import pl.szymon.btt_bot.async.UpdateLessonsCallable;
 import pl.szymon.btt_bot.structures.CompleteTimetable;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.time.LocalTime;
 import java.util.concurrent.Executors;
@@ -16,9 +17,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
+@ThreadSafe
 public class BotDataHandler {
     private final static int DAY_CONST = 86400; // 60 * 60 * 24
-    public static final PrintHandler LOG_PRINT_HANDLER = (level, text) -> log.log(level, text.getString());
+    public static final PrintHandler DEFAULT_LOG_PRINT_HANDLER = (level, text) -> log.log(level, text.getString());
 
     private final AtomicReference<CompleteTimetable> completeTimetableAtomicReference = new AtomicReference<>();
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new PrefixedThreadFactory("DATA_UPDATE_THREAD"));
@@ -29,12 +31,11 @@ public class BotDataHandler {
         this.klassName = klassName;
 
         executorService.scheduleAtFixedRate(
-                updateData(LOG_PRINT_HANDLER),
+                updateData(DEFAULT_LOG_PRINT_HANDLER),
                 DAY_CONST - LocalTime.now().toSecondOfDay(),
                 DAY_CONST,
                 TimeUnit.SECONDS
         );
-
     }
 
     public CompleteTimetable get() {
@@ -45,9 +46,12 @@ public class BotDataHandler {
         return () -> {
             CompleteTimetable data = null;
             int retryCounter = 0;
-            boolean shouldRetry;
+            boolean shouldRetry = false;
 
             do {
+                if(shouldRetry)
+                    log.info("Retrying...");
+
                 shouldRetry = false;
 
                 try {

@@ -20,26 +20,41 @@ public class Teacher {
 		return id.getShortName();
 	}
 
+	@Nullable
 	public TeacherName getFullName() {
 		return fullName;
 	}
 
 	public String print() {
-		return fullName.getFirstName() + " " + fullName.getLastName();
+		if(fullName != null) {
+			return fullName.getFirstName() + " " + fullName.getLastName();
+		}
+
+		return id.shortName;
 	}
 
 	@Override
 	public String toString() {
-		return "Teacher(" +
-				"id=" +
-				getId() +
-				", short=" +
-				getShortName() +
-				", firstName=" +
-				getFullName().getFirstName() +
-				", lastName=" +
-				getFullName().getLastName() +
-				")";
+		StringBuilder builder = new StringBuilder();
+
+		builder.append("Teacher(")
+				.append("id=")
+				.append(getId())
+				.append(", short=")
+				.append(getShortName());
+
+		if(getFullName() != null) {
+			builder.append(", firstName=")
+					.append(getFullName().getFirstName())
+					.append(", lastName=")
+					.append(getFullName().getLastName());
+		} else {
+			builder.append(", fullName=null");
+		}
+
+		builder.append(")");
+
+		return builder.toString();
 	}
 
 	@Value
