@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Value;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 @Value
 public class Subject {
@@ -16,9 +17,6 @@ public class Subject {
 	String name;
 
 	public String getName() {
-		if(name != null)
-			return name;
-
-		return shortName;
+		return Optional.ofNullable(name).orElse(shortName);
 	}
 }

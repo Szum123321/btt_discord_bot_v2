@@ -52,6 +52,8 @@ public class Lesson extends RawLesson {
 	}
 
 	public Classroom getClassroom() {
+		//For some reason some lessons may have no classroom assigned
+		if(getClassroomIds().length == 0) return Classroom.EMPTY_CLASSROOM;
 		return definition.getClassrooms().get(getClassroomIds()[0]);
 	}
 

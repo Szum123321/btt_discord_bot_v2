@@ -1,73 +1,99 @@
 package pl.szymon.btt_bot.network;
 
+import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import lombok.Value;
 import lombok.extern.log4j.Log4j2;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import pl.szymon.btt_bot.structures.data.Teacher;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Objects;
+import java.util.Set;
 
+
+
+//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+//Zmienili standart nazw!
 @Log4j2
 public class TeacherNameDownloader {
     public static ImmutableMap<String, Teacher.TeacherName> get(NetworkContext context) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .GET()
-                .uri(URI.create(context.getRootUrl() + "teachers/")) //this slash is important. if not present server response with 302
-                .build();
+        Element nextPageElement;
+        String url = context.getRootUrl() + "teachers/";
 
-        HttpResponse<String> httpResponse = context.getHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        ImmutableMap.Builder<String, Teacher.TeacherName> builder = ImmutableMap.builder();
 
-        if(httpResponse.statusCode() != 200) {
-            throw new NetworkStatusCodeException(httpResponse.statusCode());
-        }
+        ConcurrentHashMultiset<String> foundNames = ConcurrentHashMultiset.create();
 
-        Elements table = Jsoup.parse(httpResponse.body())
-                .getElementsByClass("skinTemplateMainDiv")
-                .first()
-                .selectFirst("tbody")
-                .select("tr");
+        do {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .GET()
+                    .uri(URI.create(url))
+                    .build();
 
-        ImmutableMap.Builder<String, Teacher.TeacherName> mapBuilder = ImmutableMap.builder();
+            HttpResponse<String> httpResponse = context.getHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
-        table.stream()
-                .filter(element -> element.hasClass("row1") || element.hasClass("row2"))
-                .filter(TeacherNameDownloader::isValidName)
-                .map(TeacherNameDownloader::toTeacherName)
-                .filter(Objects::nonNull)
-                .forEach(intermid -> mapBuilder.put(intermid.getShortName(), intermid.getCoagulatedName()));
+            if (httpResponse.statusCode() != 200) {
+                throw new NetworkStatusCodeException(httpResponse.statusCode());
+            }
 
-        return mapBuilder.build();
-    }
+            Document doc = Jsoup.parse(httpResponse.body());
 
-    private static boolean isValidName(Element element) {
-        Elements columns = element.select("td");
-        return columns.get(2).hasText() && columns.get(3).hasText();
-    }
+            nextPageElement = doc.getElementById("teachers_Paginator_1")
+                    .getElementsByClass("skgdPaginatorItem ")
+                    .last()
+                    .getElementsByTag("a")
+                    .first();
 
-    private static Intermid toTeacherName(Element element) {
-        Elements elements = element.select("td");
-        String coagulated = elements.get(2).text();
-        String[] nameParts = coagulated.split(" ");
+            url = context.getRootUrl() + nextPageElement.attributes().get("href");
 
-        if(nameParts.length != 2)
-            return null;
+            doc.getElementById("teachers_TeachersList_1")
+                    .getElementsByClass("compositeInner")
+                    .stream()
+                    .filter(element -> !element.getElementsByClass("skgd skgdli-teachers_ListItem_1-teachers_DFText_1").isEmpty())
+                    .map(element -> element.getElementsByTag("span").first().text().stripTrailing().stripLeading())
+                    .map(NameMapper::new)
+                    .filter(NameMapper::isValid)
+                    .filter(m -> {
+                        if(foundNames.contains(m.getProbablyShort())) {
+                            log.warn("Found another instace of {}, skipping: {}", m.getProbablyShort(), m);
+                        }
+                        return !foundNames.contains(m.getProbablyShort());
+                    })
+                    .peek(m -> foundNames.add(m.getProbablyShort()))
+                    .peek(log::info)
+                    .forEach(m -> builder.put(m.getProbablyShort(), new Teacher.TeacherName(m.firstName, m.lastName)));
+        } while(nextPageElement.text().equals("Dalej"));
 
-        return new Intermid(
-                new Teacher.TeacherName(nameParts[0], nameParts[1]),
-                elements.get(3).text()
-        );
+        return builder.build();
     }
 
     @Value
-    private static class Intermid {
-        Teacher.TeacherName coagulatedName;
-        String shortName;
+    private static class NameMapper {
+        String firstName, lastName;
+        String probablyShort;
+        boolean valid;
+
+        public NameMapper(String mashup) {
+            String[] parts = mashup.split(" ");
+
+            if(parts.length != 2) {
+                firstName = mashup;
+                lastName = "";
+                probablyShort = mashup;
+                valid = false;
+            } else {
+                firstName = parts[0];
+                lastName = parts[1];
+                probablyShort = lastName.substring(0, 3) + firstName.charAt(0);
+                valid = true;
+            }
+        }
     }
+
 }

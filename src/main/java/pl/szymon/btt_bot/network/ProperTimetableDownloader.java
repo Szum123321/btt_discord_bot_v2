@@ -19,14 +19,12 @@ import java.util.stream.StreamSupport;
 
 @Log4j2
 public class ProperTimetableDownloader {
-	private final static int year = LocalDateTime.now().getYear();
-
 	public static void get(NetworkContext networkContext, TimetableVersion version, CompleteTimetable.Builder builder) throws IOException, InterruptedException {
 		HttpRequest httpRequest = HttpRequest.newBuilder()
 				.POST(
 						HttpRequest.BodyPublishers.ofString(
 						"{\"__args\":[null,{\"year\":" +
-								year +
+								version.getYear() +
 								",\"datefrom\":\"" +
 								version.getDateFrom() +
 								"\",\"dateto\":\"" +
@@ -55,8 +53,14 @@ public class ProperTimetableDownloader {
 		@SuppressWarnings("unchecked")
 		Map<Integer, List<Lesson>>[] tempMap = new HashMap[5];
 
-		for(int i = 0; i < 5; i++)
-			tempMap[i] = new HashMap<>();
+		List<Lesson>[][] tempArray = new ArrayList[5][15];
+
+
+		for(int i = 0; i < 5; i++) {
+			for (int j = 0; j < 15; j++) {
+				tempArray[i][j] = new ArrayList<>();
+			}
+		}
 
 		try {
 			Spliterator<JsonElement> spliterator = JsonParser.parseString(httpResponse.body())
@@ -69,9 +73,10 @@ public class ProperTimetableDownloader {
 					.map(jsonElement -> gson.fromJson(jsonElement, RawLesson.class))
 					.flatMap(ProperTimetableDownloader::unpack)
 					.map(rawLesson -> new Lesson(rawLesson, builder.getLessonTimes().get(rawLesson.getPeriod())))
-					.forEach(lesson -> addToMap(tempMap, lesson));
+					.forEach(lesson -> addToList(tempArray, lesson));
+					//.forEach(lesson -> addToMap(tempMap, lesson));
 
-			builder.setLessons(tempMap);
+			builder.setLessons(tempArray);
 		} catch (Exception e) {
 			log.error("Server responded with {}", httpResponse.body());
 			throw e;
@@ -103,5 +108,9 @@ public class ProperTimetableDownloader {
 	private static void addToMap(Map<Integer, List<Lesson>>[] map, Lesson lesson) {
 		map[lesson.getDayOfWeek()].computeIfAbsent(lesson.getPeriod(), k -> new ArrayList<>());
 		map[lesson.getDayOfWeek()].get(lesson.getPeriod()).add(lesson);
+	}
+
+	private static void addToList(List<Lesson>[][] list, Lesson lesson) {
+		list[lesson.getDayOfWeek()][lesson.getPeriod()].add(lesson);
 	}
 }

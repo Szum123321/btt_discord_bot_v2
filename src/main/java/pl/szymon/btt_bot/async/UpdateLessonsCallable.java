@@ -54,6 +54,8 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 
 		ProperTimetableDownloader.get(networkContext, timetableVersion, builder);
 
+		log.info(builder);
+
 		log.info("Patching substitutions");
 
 		int retryCounter = 0;
@@ -74,7 +76,7 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 							String gr = pattern[0];
 
 							for(int i = substitution.getStartPeriod(); i <= substitution.getEndPeriod(); i++) {
-								builder.getLessons()[finalLocalDate.getDayOfWeek().ordinal()].get(i)
+								builder.getLessons()[finalLocalDate.getDayOfWeek().ordinal()][i]
 										.stream()
 										.filter(lesson -> contains(lesson.getGroupNames(), gr))
 										.forEach(lesson -> lesson.setInfo(substitution.getInfo()));
@@ -82,7 +84,7 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 							}
 						} else {
 							for (int i = substitution.getStartPeriod(); i <= substitution.getEndPeriod(); i++) {
-								builder.getLessons()[finalLocalDate.getDayOfWeek().ordinal()].get(i).forEach(lesson -> lesson.setInfo(substitution.getInfo()));
+								builder.getLessons()[finalLocalDate.getDayOfWeek().ordinal()][i].forEach(lesson -> lesson.setInfo(substitution.getInfo()));
 								counter.getAndIncrement();
 							}
 						}

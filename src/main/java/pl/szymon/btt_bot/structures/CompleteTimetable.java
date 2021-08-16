@@ -31,7 +31,8 @@ public class CompleteTimetable {
     NoThrowArrayList<LessonTime> pauseTimes;
 
     @Getter(AccessLevel.PRIVATE)
-    Map<Integer, List<Lesson>>[] lessonList; //5
+    List<Lesson>[][] lessonList; //5, 15
+    //Map<Integer, List<Lesson>>[] lessonList; //5
 
     @NonFinal
     Map<Integer, LessonGroup>[] lessonGroups;
@@ -43,6 +44,18 @@ public class CompleteTimetable {
         for(int i = 0; i < 5; i++) {
             Map<Integer, LessonGroup> mapBuilder = new HashMap<>();
 
+            for(int j = 0; j < 15; j++) {
+                if(!lessonList[i][j].isEmpty()) {
+                    LessonGroup.Builder groupBuilder = LessonGroup.builder();
+                    groupBuilder.setLessonTime(lessonTimes.get(j));
+                    lessonList[i][j].forEach(lesson -> {
+                        lesson.setDefinition(this);
+                        groupBuilder.addLesson(lesson);
+                    });
+                    mapBuilder.put(j, groupBuilder.build());
+                }
+            }
+/*
             lessonList[i].forEach((k, v) -> {
                 LessonGroup.Builder groupBuilder = LessonGroup.builder();
                 groupBuilder.setLessonTime(lessonTimes.get(k));
@@ -53,7 +66,7 @@ public class CompleteTimetable {
 
                 mapBuilder.put(k, groupBuilder.build());
             });
-
+*/
             lessonGroups[i] = mapBuilder;
         }
     }
@@ -66,13 +79,17 @@ public class CompleteTimetable {
         ArrayList<Lesson> collector = new ArrayList<>();
 
         for(int i = 0; i < 5; i++) {
-            lessonList[i].values().forEach(collector::addAll);
+            for(int j = 0; j < 15; j++) {
+                collector.addAll(lessonList[i][j]);
+            }
+            //lessonList[i].values().forEach(collector::addAll);
         }
 
         return collector;
     }
 
     @Getter
+    @ToString
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Builder {
         final Map<Integer, Teacher> teachers;
@@ -102,7 +119,7 @@ public class CompleteTimetable {
         NoThrowArrayList<LessonTime> pauseTimes;
 
         @Setter
-        Map<Integer, List<Lesson>>[] lessons; //15x5
+        List<Lesson>[][] lessons; //15x5
 
         public Builder() {
             teachers = new HashMap<>();

@@ -72,7 +72,8 @@ public class TypeDeclarationsDownloader {
 
 						builder.addTeacher(new Teacher(
 								gson.fromJson(jsonObject, Teacher.TeacherId.class),
-								builder.getTeacherNames().get(jsonObject.get("short").getAsString())
+								null
+								//builder.getTeacherNames().get(jsonObject.get("short").getAsString())
 						));
 					});
 					break;
