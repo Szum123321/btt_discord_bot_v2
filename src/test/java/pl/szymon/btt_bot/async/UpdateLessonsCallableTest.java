@@ -18,7 +18,7 @@ class UpdateLessonsCallableTest {
 
         long stop = System.nanoTime();
 
-        timetable.getTeachers().values().forEach(log::info);
+        timetable.getSubjects().values().forEach(log::info);
         log.info(timetable.toString());
         log.info("Test took: {} ns", stop - startTime);
     }

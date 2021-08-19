@@ -21,10 +21,9 @@ import java.util.*;
 public class TypeDeclarationsDownloader {
 	private static final Gson gson = new GsonBuilder()
 			.registerTypeAdapter(LocalTime.class, (JsonDeserializer<LocalTime>) (json, typeOfT, context) -> LocalTime.parse(json.getAsString()))
-			.setPrettyPrinting()
 			.create();
 
-	public static void get(NetworkContext networkContext, TimetableVersion version, CompleteTimetable.Builder builder, String klassName) throws IOException, InterruptedException {
+	public static void get(NetworkContext networkContext, TimetableVersion version, CompleteTimetable.Builder builder) throws IOException, InterruptedException {
 		HttpRequest request = HttpRequest.newBuilder()
 				.POST(HttpRequest.BodyPublishers.ofString(
 						"{\"__args\":[null," +
@@ -46,12 +45,6 @@ public class TypeDeclarationsDownloader {
 			throw new NetworkStatusCodeException(httpResponse.statusCode());
 		}
 
-		Map<String, String> subjectNameMap;
-
-		try(InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(TypeDeclarationsDownloader.class.getClassLoader().getResourceAsStream("subjects_name_map.json")))) {
-			subjectNameMap = gson.fromJson(reader, new TypeToken<Map<String, String>>(){}.getType());
-		}
-
 		NoThrowArrayList<LessonTime> lessonTimeList = new NoThrowArrayList<>();
 
 		String responseBody = httpResponse.body();
@@ -66,25 +59,8 @@ public class TypeDeclarationsDownloader {
 			JsonArray dataRows = jsonElement.getAsJsonObject().getAsJsonArray("data_rows");
 
 			switch(id) {
-				case "teachers": {
-					dataRows.forEach(jsonElement1 -> {
-						JsonObject jsonObject = jsonElement1.getAsJsonObject();
-
-						builder.addTeacher(new Teacher(
-								gson.fromJson(jsonObject, Teacher.TeacherId.class),
-								null
-								//builder.getTeacherNames().get(jsonObject.get("short").getAsString())
-						));
-					});
-					break;
-				}
-
-				case "subjects": {
-					dataRows.forEach(jsonElement1 -> {
-						JsonObject jsonObject = jsonElement1.getAsJsonObject();
-						jsonObject.addProperty("name", subjectNameMap.get(jsonObject.get("short").getAsString()));
-						builder.addSubject(gson.fromJson(jsonObject, Subject.class));
-					});
+				case "classes": {
+					dataRows.forEach(jsonElement1 -> builder.addClass(gson.fromJson(jsonElement1, Klasa.class)));
 					break;
 				}
 
@@ -93,23 +69,22 @@ public class TypeDeclarationsDownloader {
 					break;
 				}
 
-				case "classes": {
-					dataRows.forEach(jsonElement1 -> {
-						Klasa klasa = gson.fromJson(jsonElement1, Klasa.class);
-						builder.addClass(klasa);
-
-						if(klasa.getName().equals(klassName))
-							builder.setKlasaId(klasa.getId());
-					});
-					break;
-				}
-
 				case "periods": {
 					dataRows.forEach(jsonElement1 -> {
 						try {
 							lessonTimeList.add(LessonTime.fromPeriod(gson.fromJson(jsonElement1, Period.class)));
-						} catch (DateTimeParseException ignored) {} //For some reason timetable sends empty periods, which now, I have to deal with!
+						} catch (DateTimeParseException ignored) {} //For some reason timetable sends empty periods with which I now have to deal with!
 					});
+					break;
+				}
+
+				case "subjects": {
+					dataRows.forEach(jsonElement1 -> builder.addSubject(gson.fromJson(jsonElement1, Subject.class)));
+					break;
+				}
+
+				case "teachers": {
+					dataRows.forEach(jsonElement1 -> builder.addTeacher(gson.fromJson(jsonElement1, Teacher.class)));
 					break;
 				}
 

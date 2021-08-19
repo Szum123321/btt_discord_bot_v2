@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Log4j2
 @RequiredArgsConstructor
 public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
-	private final NetworkContext networkContext = new NetworkContext(
+	private final NetworkContext networkContext = new NetworkContext (
 			"https://lo3gdynia.edupage.org/",
 			HttpClient.newBuilder().cookieHandler(new CookieManager()).build()
 	);
@@ -28,11 +28,11 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 	public CompleteTimetable call() throws RuntimeException, IOException, InterruptedException {
 		log.info("Starting data update for class: {}", klassName);
 
-		NetworkContextInitializer.getGsecHash(networkContext);
-
-		TimetableVersionArray versionArray = TimetableVersionArrayDownloader.get(networkContext);
+		networkContext.init();
 
 		CompleteTimetable.Builder builder = new CompleteTimetable.Builder();
+
+		TimetableVersionArray versionArray = TimetableVersionArrayDownloader.get(networkContext);
 
 		TimetableVersion timetableVersion = versionArray
 				.getTimetables()
@@ -41,16 +41,14 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 				.findFirst()
 				.orElseThrow(() -> new NoSuchElementException("Could not find timetable version with tt_num of: " + versionArray.getDefaultNum()));
 
-		timetableVersion.updateDateTo();
+		timetableVersion.calcDateTo();
 
 		builder.setDateSince(timetableVersion.getDateFrom());
 		builder.setDateTo(timetableVersion.getDateTo());
 
 		log.info("Selected timetable version is: {}", timetableVersion);
 
-		builder.setTeacherNames(TeacherNameDownloader.get(networkContext));
-
-		TypeDeclarationsDownloader.get(networkContext, timetableVersion, builder, klassName);
+		TypeDeclarationsDownloader.get(networkContext, timetableVersion, builder);
 
 		ProperTimetableDownloader.get(networkContext, timetableVersion, builder);
 

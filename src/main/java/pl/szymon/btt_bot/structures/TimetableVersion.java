@@ -20,13 +20,12 @@ public class TimetableVersion {
 	LocalDate dateTo;
 
 	public LocalDate getDateTo() {
-		if(dateTo == null)
-			updateDateTo();
+		if(dateTo == null) calcDateTo();
 
 		return dateTo;
 	}
 
-	public void updateDateTo() {
+	public void calcDateTo() {
 		dateTo = dateFrom.plusDays(6);
 	}
 }
