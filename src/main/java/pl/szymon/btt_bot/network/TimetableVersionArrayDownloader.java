@@ -31,7 +31,7 @@ public class TimetableVersionArrayDownloader {
 		CloseableHttpResponse resp;
 		String responseBody;
 		try (var client = HttpClients.createDefault()) {
-			resp = client.execute(req);
+			resp = client.execute(req, context.getContext());
 			responseBody = new String(resp.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
 		}
 

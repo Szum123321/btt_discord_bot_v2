@@ -14,9 +14,6 @@ import pl.szymon.btt_bot.structures.data.*;
 import pl.szymon.btt_bot.structures.time.*;
 
 import java.io.*;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
@@ -30,26 +27,23 @@ public class TypeDeclarationsDownloader {
 
 	public static void get(NetworkContext networkContext, TimetableVersion version, CompleteTimetable.Builder builder) throws IOException, InterruptedException {
 		var req = new HttpPost(networkContext.getRootUrl() + "rpr/server/maindbi.js?__func=mainDBIAccessor");
+
 		req.setEntity(new StringEntity("{\"__args\":[null," +
 				version.getYear() +
-				",{\"vt_filter\":{\"datefrom\":\"" +
-				version.getDateFrom() +
-				"\",\"dateto\":\"" +
-				version.getDateTo() +
-				"\"}},{\"op\":\"fetch\",\"tables\":[],\"columns\":[],\"needed_part\":{\"teachers\":[\"__name\",\"firstname\",\"lastname\",\"short\"],\"classes\":[\"__name\"],\"classrooms\":[\"__name\",\"name\",\"short\"],\"igroups\":[\"__name\"],\"subjects\":[\"__name\",\"name\",\"short\"],\"events\":[\"typ\",\"name\"],\"event_types\":[\"name\"],\"subst_absents\":[\"date\",\"absent_typeid\",\"groupname\"],\"periods\":[\"__name\",\"period\",\"starttime\",\"endtime\"],\"dates\":[\"tt_num\",\"tt_day\"]},\"needed_combos\":{},\"client_filter\":{},\"info_tables\":[],\"info_columns\":[],\"has_columns\":{}}],\"__gsh\":\"" +
-				networkContext.getGsecHash() +
-				"\"}"));
+				",{\"vt_filter\":{\"datefrom\":\"" + version.getDateFrom() +
+				"\",\"dateto\":\"" + version.getDateTo() +
+				"\"}},{\"op\":\"fetch\",\"needed_part\":{\"teachers\":[\"short\",\"name\",\"firstname\",\"lastname\",\"subname\",\"cb_hidden\",\"expired\",\"firstname\",\"lastname\",\"short\"],\"classes\":[\"short\",\"name\",\"firstname\",\"lastname\",\"subname\",\"classroomid\"],\"classrooms\":[\"short\",\"name\",\"firstname\",\"lastname\",\"subname\",\"name\",\"short\"],\"igroups\":[\"short\",\"name\",\"firstname\",\"lastname\",\"subname\"],\"students\":[\"short\",\"name\",\"firstname\",\"lastname\",\"subname\",\"classid\"],\"subjects\":[\"short\",\"name\",\"firstname\",\"lastname\",\"subname\",\"name\",\"short\"],\"events\":[\"typ\",\"name\"],\"event_types\":[\"name\",\"icon\"],\"subst_absents\":[\"date\",\"absent_typeid\",\"groupname\"],\"periods\":[\"short\",\"name\",\"firstname\",\"lastname\",\"subname\",\"period\",\"starttime\",\"endtime\"],\"dayparts\":[\"starttime\",\"endtime\"],\"dates\":[\"tt_num\",\"tt_day\"]},\"needed_combos\":{}}],\"__gsh\":\"" +
+				networkContext.getGsecHash() + "\"}"));
 
 		CloseableHttpResponse resp;
 		String responseBody;
 		try (var client = HttpClients.createDefault()) {
-			resp = client.execute(req);
+			resp = client.execute(req, networkContext.getContext());
 			responseBody = new String(resp.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
 		}
 		if(resp.getStatusLine().getStatusCode() != 200) throw new NetworkStatusCodeException(resp.getStatusLine().getStatusCode());
 
 		NoThrowArrayList<LessonTime> lessonTimeList = new NoThrowArrayList<>();
-
 
 		JsonArray rootArray = JsonParser.parseString(responseBody)
 				.getAsJsonObject()

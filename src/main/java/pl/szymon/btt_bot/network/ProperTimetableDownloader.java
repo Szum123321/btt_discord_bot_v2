@@ -30,17 +30,13 @@ public class ProperTimetableDownloader {
 
 	public static void get(NetworkContext networkContext, TimetableVersion version, CompleteTimetable.Builder builder) throws IOException, InterruptedException {
 		var req = new HttpPost(networkContext.getRootUrl() + "timetable/server/currenttt.js?__func=curentttGetData");
-		req.setEntity(new StringEntity("{\"__args\":[null,{\"year\":" +
-				version.getYear() +
-				",\"datefrom\":\"" +
-				version.getDateFrom() +
-				"\",\"dateto\":\"" +
-				version.getDateTo() +
-				"\",\"table\":\"classes\",\"id\":\"" +
-				builder.getKlasaId() +
-				"\",\"showColors\":true,\"showIgroupsInClasses\":false,\"showOrig\":true}],\"__gsh\":\"" +
-				networkContext.getGsecHash() +
-				"\"}"));
+
+		req.setEntity(new StringEntity("{\"__args\":[null,{\"year\":" + version.getYear() +
+				",\"datefrom\":\"" + version.getDateFrom() +
+				"\",\"dateto\":\"" + version.getDateTo() +
+				"\",\"table\":\"classes\",\"id\":\"" + builder.getKlasaId() +
+				"\",\"showColors\":true,\"showIgroupsInClasses\":false,\"showOrig\":true,\"log_module\":\"CurrentTTView\"}],\"__gsh\":\"" +
+				networkContext.getGsecHash() + "\"}"));
 
 		CloseableHttpResponse resp;
 		String body;
@@ -59,7 +55,6 @@ public class ProperTimetableDownloader {
 				tempArray[i][j] = new ArrayList<>();
 			}
 		}
-
 
 		try {
 			Spliterator<JsonElement> spliterator = JsonParser.parseString(body)

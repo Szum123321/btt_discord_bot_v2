@@ -7,8 +7,6 @@ import pl.szymon.btt_bot.structures.*;
 import pl.szymon.btt_bot.structures.data.Substitution;
 
 import java.io.IOException;
-import java.net.CookieManager;
-import java.net.http.HttpClient;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -33,8 +31,7 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 
 		log.info("Context {}", networkContext);
 
-
-		log.info("Context {}", networkContext);
+		networkContext.update_gsec("https://lo3gdynia.edupage.org/timetable/");
 
 		CompleteTimetable.Builder builder = new CompleteTimetable.Builder();
 
@@ -47,16 +44,21 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 				.findFirst()
 				.orElseThrow(() -> new NoSuchElementException("Could not find timetable version with tt_num of: " + versionArray.getDefaultNum()));
 
-		//timetableVersion.calcDateTo();
+		timetableVersion.calcDateTo();
 
 		builder.setDateSince(timetableVersion.getDateFrom());
 		builder.setDateTo(timetableVersion.getDateTo());
 
 		log.info("Selected timetable version is: {}", timetableVersion);
 
-		TypeDeclarationsDownloader.get(networkContext, timetableVersion, builder);
+		log.info("Context {}", networkContext);
 
-		ProperTimetableDownloader.get(networkContext, timetableVersion, builder);
+		TimetableVersion ver = new TimetableVersion(-1, 2022, "", false, LocalDate.of(2022, 9, 5),
+				LocalDate.of(2022, 9, 11));
+
+		TypeDeclarationsDownloader.get(networkContext, ver, builder);
+
+		ProperTimetableDownloader.get(networkContext, ver, builder);
 
 		log.info(builder);
 
