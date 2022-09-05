@@ -48,7 +48,7 @@ public class BotEventListener extends ListenerAdapter {
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         Message message = event.getMessage();
 
-        log.info("Recieved! {} from {}", message.getContentRaw(), message.getAuthor().getName());
+        log.trace("Recieved! {} from {}", message.getContentRaw(), message.getAuthor().getName());
         if(event.getAuthor().isBot())
             return;
 
@@ -110,9 +110,7 @@ public class BotEventListener extends ListenerAdapter {
 
                             dispatcher.getRoot().getChildren().stream()
                                     .filter(commandNode -> commandNode instanceof LiteralCommandNode)
-                                    .forEach(commandNode -> {
-                                        builder.append(commandNode.getName()).append(", ");
-                                    });
+                                    .forEach(commandNode -> builder.append(commandNode.getName()).append(", "));
 
                             ctx.getSource().getChannel().sendMessage(new TranslatableText("help_generic", builder.toString()).getString()).queue();
 
@@ -160,19 +158,20 @@ public class BotEventListener extends ListenerAdapter {
                        .executes(ctx -> {
                            Optional<LessonTime> lessonTime = getLessonTime(ctx);
 
-                           if(lessonTime.isPresent()) {
-                               if(lessonTime.get().getType().isLesson()) {
-                                   LessonTime pause = botDataHandler.get().getPauseTimes().get(lessonTime.get().getId());
-                                   if(pause != null) {
-                                       ctx.getSource().getChannel().sendMessage(pause.print().getString()).queue();
-                                   } else {
-                                       ctx.getSource().getChannel().sendMessage(new TranslatableText("generic_not_found").getString()).queue();
-                                   }
+                           if(lessonTime.isEmpty()) {
+                               ctx.getSource().getChannel().sendMessage(new TranslatableText("generic_not_found").getString()).queue();
+                                return 0;
+                           }
+
+                           if(lessonTime.get().getType().isLesson()) {
+                               LessonTime pause = botDataHandler.get().getPauseTimes().get(lessonTime.get().getId());
+                               if(pause != null) {
+                                   ctx.getSource().getChannel().sendMessage(pause.print().getString()).queue();
                                } else {
-                                   ctx.getSource().getChannel().sendMessage(lessonTime.get().print().getString()).queue();
+                                   ctx.getSource().getChannel().sendMessage(new TranslatableText("generic_not_found").getString()).queue();
                                }
                            } else {
-                               ctx.getSource().getChannel().sendMessage(new TranslatableText("generic_not_found").getString()).queue();
+                               ctx.getSource().getChannel().sendMessage(lessonTime.get().print().getString()).queue();
                            }
 
                            return 0;
@@ -199,29 +198,29 @@ public class BotEventListener extends ListenerAdapter {
 
         dispatcher.register(
                 literal("teraz").executes(ctx -> {
-                    LocalDateTime localDateTime = toLocalDateTime(ctx.getSource().getTimeCreated());
-                    Optional<LessonTime> optionalLessonTime = botDataHandler.get().getLessonTimeTree().get(localDateTime.toLocalTime());
+                    var now = toLocalDateTime(ctx.getSource().getTimeCreated());
+                    if(now.getDayOfWeek().getValue() > DayOfWeek.FRIDAY.getValue()) {
+                        ctx.getSource().getChannel().sendMessage(new TranslatableText("it_is_weekend").getString()).queue();
+                        return 0;
+                    }
 
-                    if(localDateTime.getDayOfWeek().ordinal() < 5) {
-                        if(optionalLessonTime.isPresent()) {
-                            LessonTime lessonTime = optionalLessonTime.get();
+                    var timeOptional = botDataHandler.get().getLessonTimeTree().get(now.toLocalTime());
+                    if(timeOptional.isEmpty()) {
+                        ctx.getSource().getChannel().sendMessage(new TranslatableText("lesson_not_found").getString()).queue();
+                        return 0;
+                    }
+                    var time = timeOptional.get();
 
-                            if(lessonTime.getType().isLesson()) {
-                                LessonGroup lessonGroup = botDataHandler.get().getLessonGroups()[localDateTime.getDayOfWeek().ordinal()].get(lessonTime.getId());
+                    if(time.getType().isLesson()) {
+                        LessonGroup lessonGroup = botDataHandler.get().getLessonGroups()[now.getDayOfWeek().ordinal()].get(time.getId());
 
-                                if(lessonGroup != null) {
-                                    ctx.getSource().getChannel().sendMessage(lessonGroup.print()).queue();
-                                } else {
-                                    ctx.getSource().getChannel().sendMessage(new TranslatableText("lesson_not_found").getString()).queue();
-                                }
-                            } else {
-                                ctx.getSource().getChannel().sendMessage(lessonTime.print().getString()).queue();
-                            }
+                        if(lessonGroup != null) {
+                            ctx.getSource().getChannel().sendMessage(lessonGroup.print()).queue();
                         } else {
-                            ctx.getSource().getChannel().sendMessage(new TranslatableText("generic_not_found").getString()).queue();
+                            ctx.getSource().getChannel().sendMessage(new TranslatableText("lesson_not_found").getString()).queue();
                         }
                     } else {
-                        ctx.getSource().getChannel().sendMessage(new TranslatableText("it_is_weekend").getString()).queue();
+                        ctx.getSource().getChannel().sendMessage(time.print().getString()).queue();
                     }
 
                     return 0;
@@ -236,6 +235,8 @@ public class BotEventListener extends ListenerAdapter {
         dispatcher.register(literal("j").redirect(dispatcher.getRoot().getChild("jutro")).executes(dispatcher.getRoot().getChild("jutro").getCommand()));
 
         dispatcher.register(literal("t").redirect(dispatcher.getRoot().getChild("teraz")).executes(dispatcher.getRoot().getChild("teraz").getCommand()));
+
+        dispatcher.register(literal("now").redirect(dispatcher.getRoot().getChild("teraz")).executes(dispatcher.getRoot().getChild("teraz").getCommand()));
     }
 
     private void printWholeDay(int dayOfWeek, CommandContext<Message> ctx) {
