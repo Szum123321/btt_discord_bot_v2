@@ -2,6 +2,10 @@ package pl.szymon.btt_bot.network;
 
 import com.google.gson.*;
 import lombok.extern.log4j.Log4j2;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
 import pl.szymon.btt_bot.structures.*;
 import pl.szymon.btt_bot.structures.data.RawLesson;
 
@@ -9,6 +13,7 @@ import java.io.*;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -24,29 +29,27 @@ public class ProperTimetableDownloader {
 			.create();
 
 	public static void get(NetworkContext networkContext, TimetableVersion version, CompleteTimetable.Builder builder) throws IOException, InterruptedException {
-		HttpRequest httpRequest = HttpRequest.newBuilder()
-				.POST(
-						HttpRequest.BodyPublishers.ofString(
-						"{\"__args\":[null,{\"year\":" +
-								version.getYear() +
-								",\"datefrom\":\"" +
-								version.getDateFrom() +
-								"\",\"dateto\":\"" +
-								version.getDateTo() +
-								"\",\"table\":\"classes\",\"id\":\"" +
-								builder.getKlasaId() +
-								"\",\"showColors\":true,\"showIgroupsInClasses\":false,\"showOrig\":true}],\"__gsh\":\"" +
-								networkContext.getGsecHash() +
-								"\"}"
-						)
-				).uri(URI.create(networkContext.getRootUrl() + "timetable/server/currenttt.js?__func=curentttGetData"))
-				.build();
+		var req = new HttpPost(networkContext.getRootUrl() + "timetable/server/currenttt.js?__func=curentttGetData");
+		req.setEntity(new StringEntity("{\"__args\":[null,{\"year\":" +
+				version.getYear() +
+				",\"datefrom\":\"" +
+				version.getDateFrom() +
+				"\",\"dateto\":\"" +
+				version.getDateTo() +
+				"\",\"table\":\"classes\",\"id\":\"" +
+				builder.getKlasaId() +
+				"\",\"showColors\":true,\"showIgroupsInClasses\":false,\"showOrig\":true}],\"__gsh\":\"" +
+				networkContext.getGsecHash() +
+				"\"}"));
 
-		HttpResponse<String> httpResponse = networkContext.getHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-		if(httpResponse.statusCode() != 200) {
-			throw new NetworkStatusCodeException(httpResponse.statusCode());
+		CloseableHttpResponse resp;
+		String body;
+		try (var client = HttpClients.createDefault()) {
+			resp = client.execute(req, networkContext.getContext());
+			body = new String(resp.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
 		}
+
+		if(resp.getStatusLine().getStatusCode() != 200) throw new NetworkStatusCodeException(resp.getStatusLine().getStatusCode());
 
 		@SuppressWarnings("unchecked")
 		List<Lesson>[][] tempArray = new ArrayList[5][15];
@@ -57,8 +60,9 @@ public class ProperTimetableDownloader {
 			}
 		}
 
+
 		try {
-			Spliterator<JsonElement> spliterator = JsonParser.parseString(httpResponse.body())
+			Spliterator<JsonElement> spliterator = JsonParser.parseString(body)
 					.getAsJsonObject()
 					.getAsJsonObject("r")
 					.getAsJsonArray("ttitems")
@@ -73,7 +77,7 @@ public class ProperTimetableDownloader {
 
 			builder.setLessons(tempArray);
 		} catch (Exception e) {
-			log.error("Server responded with {}", httpResponse.body());
+			log.error("Server responded with {}", body);
 			throw e;
 		}
 	}

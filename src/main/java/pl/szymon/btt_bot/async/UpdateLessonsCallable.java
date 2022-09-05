@@ -18,8 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 	private final NetworkContext networkContext = new NetworkContext (
-			"https://lo3gdynia.edupage.org/",
-			HttpClient.newBuilder().cookieHandler(new CookieManager()).build()
+			"https://lo3gdynia.edupage.org/"
 	);
 
 	private final String klassName;
@@ -29,6 +28,13 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 		log.info("Starting data update for class: {}", klassName);
 
 		networkContext.init();
+		networkContext.update_gsec(networkContext.getRootUrl());
+		networkContext.GET("https://lo3gdynia.edupage.org/timetable/");
+
+		log.info("Context {}", networkContext);
+
+
+		log.info("Context {}", networkContext);
 
 		CompleteTimetable.Builder builder = new CompleteTimetable.Builder();
 
@@ -41,7 +47,7 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 				.findFirst()
 				.orElseThrow(() -> new NoSuchElementException("Could not find timetable version with tt_num of: " + versionArray.getDefaultNum()));
 
-		timetableVersion.calcDateTo();
+		//timetableVersion.calcDateTo();
 
 		builder.setDateSince(timetableVersion.getDateFrom());
 		builder.setDateTo(timetableVersion.getDateTo());

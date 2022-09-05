@@ -13,7 +13,7 @@ class UpdateLessonsCallableTest {
     void call() throws IOException, InterruptedException {
         long startTime = System.nanoTime();
 
-        UpdateLessonsCallable callable = new UpdateLessonsCallable("3P");
+        UpdateLessonsCallable callable = new UpdateLessonsCallable("4P");
         CompleteTimetable timetable = callable.call();
 
         long stop = System.nanoTime();

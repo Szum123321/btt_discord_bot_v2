@@ -2,6 +2,10 @@ package pl.szymon.btt_bot.network;
 
 import com.google.gson.JsonParser;
 import lombok.extern.log4j.Log4j2;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -11,6 +15,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,7 +23,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class SubstitutionsDownloader {
 	public static List<Substitution> get(NetworkContext networkContext, LocalDate date, String className) throws IOException, InterruptedException, NetworkStatusCodeException, NoSuchElementException {
-		HttpRequest httpRequest = HttpRequest.newBuilder()
+		/*HttpRequest httpRequest = HttpRequest.newBuilder()
 				.POST(HttpRequest.BodyPublishers.ofString(
 						"{\"__args\":[null,{\"date\":\"" +
 								date +
@@ -27,16 +32,30 @@ public class SubstitutionsDownloader {
 								"\"}"
 						)
 				).uri(URI.create(networkContext.getRootUrl() + "substitution/server/viewer.js?__func=getSubstViewerDayDataHtml"))
-				.build();
-
-		HttpResponse<String> httpResponse = networkContext.getHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
+				.build();*/
+		/*HttpResponse<String> httpResponse = networkContext.getHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
 		if(httpResponse.statusCode() != 200) {
 			throw new NetworkStatusCodeException(httpResponse.statusCode());
+		}*/
+		var req = new HttpPost(networkContext.getRootUrl() + "substitution/server/viewer.js?__func=getSubstViewerDayDataHtml");
+		req.setEntity(new StringEntity("{\"__args\":[null,{\"date\":\"" +
+				date +
+				"\",\"mode\":\"classes\"}],\"__gsh\":\"" +
+				networkContext.getGsecHash() +
+				"\"}"));
+
+		CloseableHttpResponse resp;
+		String body;
+		try (var client = HttpClients.createDefault()) {
+			resp = client.execute(req, networkContext.getContext());
+			body = new String(resp.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
 		}
 
+		if(resp.getStatusLine().getStatusCode() != 200) throw new NetworkStatusCodeException(resp.getStatusLine().getStatusCode());
+
 		Element doc = Jsoup.parse(
-					JsonParser.parseString(httpResponse.body())
+					JsonParser.parseString(body)
 							.getAsJsonObject()
 							.get("r").getAsString()
 				).selectFirst("table");

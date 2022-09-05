@@ -5,6 +5,10 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import lombok.Value;
 import lombok.extern.log4j.Log4j2;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
 import pl.szymon.btt_bot.structures.*;
 import pl.szymon.btt_bot.structures.data.*;
 import pl.szymon.btt_bot.structures.time.*;
@@ -13,6 +17,7 @@ import java.io.*;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -24,30 +29,27 @@ public class TypeDeclarationsDownloader {
 			.create();
 
 	public static void get(NetworkContext networkContext, TimetableVersion version, CompleteTimetable.Builder builder) throws IOException, InterruptedException {
-		HttpRequest request = HttpRequest.newBuilder()
-				.POST(HttpRequest.BodyPublishers.ofString(
-						"{\"__args\":[null," +
-								version.getYear() +
-								",{\"vt_filter\":{\"datefrom\":\"" +
-								version.getDateFrom() +
-								"\",\"dateto\":\"" +
-								version.getDateTo() +
-								"\"}},{\"op\":\"fetch\",\"tables\":[],\"columns\":[],\"needed_part\":{\"teachers\":[\"__name\",\"firstname\",\"lastname\",\"short\"],\"classes\":[\"__name\"],\"classrooms\":[\"__name\",\"name\",\"short\"],\"igroups\":[\"__name\"],\"subjects\":[\"__name\",\"name\",\"short\"],\"events\":[\"typ\",\"name\"],\"event_types\":[\"name\"],\"subst_absents\":[\"date\",\"absent_typeid\",\"groupname\"],\"periods\":[\"__name\",\"period\",\"starttime\",\"endtime\"],\"dates\":[\"tt_num\",\"tt_day\"]},\"needed_combos\":{},\"client_filter\":{},\"info_tables\":[],\"info_columns\":[],\"has_columns\":{}}],\"__gsh\":\"" +
-								networkContext.getGsecHash() +
-								"\"}"
-				))
-				.uri(URI.create(networkContext.getRootUrl() + "rpr/server/maindbi.js?__func=mainDBIAccessor"))
-				.build();
+		var req = new HttpPost(networkContext.getRootUrl() + "rpr/server/maindbi.js?__func=mainDBIAccessor");
+		req.setEntity(new StringEntity("{\"__args\":[null," +
+				version.getYear() +
+				",{\"vt_filter\":{\"datefrom\":\"" +
+				version.getDateFrom() +
+				"\",\"dateto\":\"" +
+				version.getDateTo() +
+				"\"}},{\"op\":\"fetch\",\"tables\":[],\"columns\":[],\"needed_part\":{\"teachers\":[\"__name\",\"firstname\",\"lastname\",\"short\"],\"classes\":[\"__name\"],\"classrooms\":[\"__name\",\"name\",\"short\"],\"igroups\":[\"__name\"],\"subjects\":[\"__name\",\"name\",\"short\"],\"events\":[\"typ\",\"name\"],\"event_types\":[\"name\"],\"subst_absents\":[\"date\",\"absent_typeid\",\"groupname\"],\"periods\":[\"__name\",\"period\",\"starttime\",\"endtime\"],\"dates\":[\"tt_num\",\"tt_day\"]},\"needed_combos\":{},\"client_filter\":{},\"info_tables\":[],\"info_columns\":[],\"has_columns\":{}}],\"__gsh\":\"" +
+				networkContext.getGsecHash() +
+				"\"}"));
 
-		HttpResponse<String> httpResponse = networkContext.getHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-		if(httpResponse.statusCode() != 200) {
-			throw new NetworkStatusCodeException(httpResponse.statusCode());
+		CloseableHttpResponse resp;
+		String responseBody;
+		try (var client = HttpClients.createDefault()) {
+			resp = client.execute(req);
+			responseBody = new String(resp.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
 		}
+		if(resp.getStatusLine().getStatusCode() != 200) throw new NetworkStatusCodeException(resp.getStatusLine().getStatusCode());
 
 		NoThrowArrayList<LessonTime> lessonTimeList = new NoThrowArrayList<>();
 
-		String responseBody = httpResponse.body();
 
 		JsonArray rootArray = JsonParser.parseString(responseBody)
 				.getAsJsonObject()
