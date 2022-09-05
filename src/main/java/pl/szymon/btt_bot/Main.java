@@ -12,13 +12,15 @@ import java.io.IOException;
 @Log4j2
 public class Main {
 	public static void main(String[] args) throws LoginException, IOException {
-		if(args.length != 2) {
+		if(args.length < 2) {
 			log.error("No token, or klass name provided!");
 			System.exit(1);
 		}
 
 		TranslatableText.setLanguage("pl_pl");
 
-		JDA bot = JDABuilder.createDefault(args[0]).addEventListeners(new BotEventListener(args[1], "Europe/Warsaw")).build();
+		JDA bot = JDABuilder.createDefault(args[0]).addEventListeners(
+				new BotEventListener(args[1], args.length >= 4 ? args[2]: null, args.length >= 4 ? args[3]: null, "Europe/Warsaw")
+		).build();
 	}
 }

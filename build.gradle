@@ -1,10 +1,10 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '6.0.0'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 group 'pl.szymon.btt_bot'
 version '1.0-SNAPSHOT'
@@ -17,19 +17,14 @@ repositories {
     maven {
         url "https://libraries.minecraft.net"
     }
-
-    maven {
-        name 'm2-dv8tion'
-        url 'https://m2.dv8tion.net/releases'
-    }
 }
 
 dependencies {
-    implementation ('net.dv8tion:JDA:4.4.0_350') {
+    implementation("net.dv8tion:JDA:5.0.0-alpha.18") {
         exclude module: 'opus-java'
     }
 
-    shadow ('net.dv8tion:JDA:4.4.0_350') {
+    shadow("net.dv8tion:JDA:5.0.0-alpha.18") {
         exclude module: 'opus-java'
     }
 
@@ -53,7 +48,6 @@ dependencies {
     shadow 'org.jsoup:jsoup:1.15.3'
 
     implementation 'org.apache.logging.log4j:log4j-api:2.18.0'
-
     implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.18.0'
 
     shadow 'org.apache.logging.log4j:log4j-slf4j-impl:2.18.0'
@@ -61,7 +55,8 @@ dependencies {
     shadow 'org.apache.logging.log4j:log4j-core:2.18.0'
 
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    shadow 'org.apache.httpcomponents:httpclient:4.5.13'
 
 
     implementation "com.google.guava:guava:31.1-jre"
@@ -83,7 +78,7 @@ test {
 
 
 task writeNewPom {
-    pom {
+//   pom {
         /*project {
             inceptionYear '2014'
             licenses {
@@ -94,5 +89,5 @@ task writeNewPom {
                 }
             }
         }*/
-    }.writeTo("pom.xml")
+  //  }.writeTo("pom.xml")
 }

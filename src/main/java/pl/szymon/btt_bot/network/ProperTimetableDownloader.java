@@ -10,9 +10,6 @@ import pl.szymon.btt_bot.structures.*;
 import pl.szymon.btt_bot.structures.data.RawLesson;
 
 import java.io.*;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -62,7 +59,6 @@ public class ProperTimetableDownloader {
 					.getAsJsonObject("r")
 					.getAsJsonArray("ttitems")
 					.spliterator();
-
 
 			StreamSupport.stream(spliterator, false)
 					.map(jsonElement -> GSON.fromJson(jsonElement, RawLesson.class))

@@ -20,6 +20,8 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 	);
 
 	private final String klassName;
+	private final String login, password;
+	private final LocalDate date;
 
 	@Override
 	public CompleteTimetable call() throws RuntimeException, IOException, InterruptedException {
@@ -27,46 +29,31 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 
 		networkContext.init();
 		networkContext.update_gsec(networkContext.getRootUrl());
-		networkContext.GET("https://lo3gdynia.edupage.org/timetable/");
-
-		log.info("Context {}", networkContext);
+		if(Objects.nonNull(password) && Objects.nonNull(login)) networkContext.log_in(login, password);
 
 		networkContext.update_gsec("https://lo3gdynia.edupage.org/timetable/");
 
 		CompleteTimetable.Builder builder = new CompleteTimetable.Builder();
 
-		TimetableVersionArray versionArray = TimetableVersionArrayDownloader.get(networkContext);
+		var mon = date.minusDays(date.getDayOfWeek().getValue() - 1);
+		var sun = mon.plusDays(7);
 
-		TimetableVersion timetableVersion = versionArray
-				.getTimetables()
-				.stream()
-				.filter(v -> v.getTt_num() == versionArray.getDefaultNum())
-				.findFirst()
-				.orElseThrow(() -> new NoSuchElementException("Could not find timetable version with tt_num of: " + versionArray.getDefaultNum()));
+		builder.setDateSince(mon);
+		builder.setDateTo(sun);
 
-		timetableVersion.calcDateTo();
-
-		builder.setDateSince(timetableVersion.getDateFrom());
-		builder.setDateTo(timetableVersion.getDateTo());
-
-		log.info("Selected timetable version is: {}", timetableVersion);
-
-		log.info("Context {}", networkContext);
-
-		TimetableVersion ver = new TimetableVersion(-1, 2022, "", false, LocalDate.of(2022, 9, 5),
-				LocalDate.of(2022, 9, 11));
+		TimetableVersion ver = new TimetableVersion(-1, 2022, "", false, mon, sun);
 
 		TypeDeclarationsDownloader.get(networkContext, ver, builder);
 
-		ProperTimetableDownloader.get(networkContext, ver, builder);
+		builder.setKlasaId(builder.getClasses().values().stream().filter(k -> k.getName().equals(klassName)).findFirst().orElseThrow().getId());
 
-		log.info(builder);
+		ProperTimetableDownloader.get(networkContext, ver, builder);
 
 		log.info("Patching substitutions");
 
 		int retryCounter = 0;
 
-		for(LocalDate localDate = timetableVersion.getDateFrom(); localDate.isBefore(timetableVersion.getDateTo()); localDate = localDate.plusDays(1)) {
+		for(LocalDate localDate = mon; localDate.isBefore(sun); localDate = localDate.plusDays(1)) {
 			log.trace("Getting substitutions for {}", localDate);
 			AtomicInteger counter = new AtomicInteger(0);
 

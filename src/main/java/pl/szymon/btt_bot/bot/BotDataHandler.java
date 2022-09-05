@@ -6,8 +6,9 @@ import org.jetbrains.annotations.NotNull;
 import pl.szymon.btt_bot.async.UpdateLessonsCallable;
 import pl.szymon.btt_bot.structures.CompleteTimetable;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -17,18 +18,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
-@ThreadSafe
 public class BotDataHandler {
     private final static int DAY_CONST = 86400; // 60 * 60 * 24
     public static final PrintHandler DEFAULT_LOG_PRINT_HANDLER = (level, text) -> log.log(level, text.getString());
 
     private final AtomicReference<CompleteTimetable> completeTimetableAtomicReference = new AtomicReference<>();
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new PrefixedThreadFactory("DATA_UPDATE_THREAD"));
-
     private final String klassName;
+    private final String login, password;
 
-    public BotDataHandler(String klassName) {
+    public BotDataHandler(String klassName, String login, String password) {
         this.klassName = klassName;
+        this.login = login;
+        this.password = password;
 
         executorService.scheduleAtFixedRate(
                 updateData(DEFAULT_LOG_PRINT_HANDLER),
@@ -48,14 +50,17 @@ public class BotDataHandler {
             int retryCounter = 0;
             boolean shouldRetry = false;
 
+            var now = LocalDate.now();
+
+            if(now.getDayOfWeek().equals(DayOfWeek.SUNDAY)) now = now.plusDays(1);
+
             do {
-                if(shouldRetry)
-                    log.info("Retrying...");
+                if(shouldRetry) log.info("Retrying...");
 
                 shouldRetry = false;
 
                 try {
-                    data = new UpdateLessonsCallable(klassName).call();
+                    data = new UpdateLessonsCallable(klassName, login, password, now).call();
                 } catch (InterruptedException | IOException e) {
                     log.warn("Download failed with exception!", e);
 

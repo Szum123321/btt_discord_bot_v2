@@ -29,10 +29,10 @@ public class BotEventListener extends ListenerAdapter {
     private final BotDataHandler botDataHandler;
     private static ZoneId zoneId;
 
-    public BotEventListener(String klassName, String zoneName) {
+    public BotEventListener(String klassName, String login, String passowrd, String zoneName) {
         registerCommands();
 
-        botDataHandler = new BotDataHandler(klassName);
+        botDataHandler = new BotDataHandler(klassName, login, passowrd);
 
         zoneId = ZoneId.of(zoneName);
     }
@@ -48,6 +48,7 @@ public class BotEventListener extends ListenerAdapter {
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         Message message = event.getMessage();
 
+        log.info("Recieved! {} from {}", message.getContentRaw(), message.getAuthor().getName());
         if(event.getAuthor().isBot())
             return;
 
