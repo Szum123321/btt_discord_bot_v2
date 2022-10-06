@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 @ToString
 public class NetworkContext {
     private static final String regex = "gsechash=\"";
-    private static final Pattern CSRF_PATTERN = Pattern.compile("<input[ a-z\\\"=]*name=\\\"csrfauth\\\"[ a-z\\\"=]*value=\\\"(?<token>[A-Za-z0-9]{10,})");
+    private static final Pattern CSRF_PATTERN = Pattern.compile("<input[ a-z\"=]*name=\"csrfauth\"[ a-z\"=]*value=\"(?<token>[A-Za-z0-9]{10,})");
 
     final URI rootUrl;
 

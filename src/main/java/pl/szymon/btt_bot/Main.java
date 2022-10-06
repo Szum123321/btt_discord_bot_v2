@@ -1,5 +1,7 @@
 package pl.szymon.btt_bot;
 
+import com.sampullara.cli.Args;
+import com.sampullara.cli.Argument;
 import lombok.extern.log4j.Log4j2;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -8,19 +10,29 @@ import pl.szymon.btt_bot.bot.TranslatableText;
 
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
+import java.util.Calendar;
 
 @Log4j2
 public class Main {
-	public static void main(String[] args) throws LoginException, IOException {
-		if(args.length < 2) {
-			log.error("No token, or klass name provided!");
-			System.exit(1);
-		}
+	@Argument(alias = "t", description = "discord app token")
+	private static String token = null;
+	@Argument(description = "timetable login")
+	private static String login = null;
+	@Argument(description = "timetable login")
+	private static String password = null;
 
-		TranslatableText.setLanguage("pl_pl");
+	@Argument(alias="k", required = true, description = "timetable login")
+	private static String klass = null;
+
+	@Argument(description = "Bot language")
+	private static String lang = "pl_pl";
+
+	public static void main(String[] args) throws LoginException, IOException {
+		Args.parseOrExit(Main.class, args);
+		TranslatableText.setLanguage(lang);
 
 		JDA bot = JDABuilder.createDefault(args[0]).addEventListeners(
-				new BotEventListener(args[1], args.length >= 4 ? args[2]: null, args.length >= 4 ? args[3]: null, "Europe/Warsaw")
+				new BotEventListener(token, password, login, Calendar.getInstance().getTimeZone().getID())
 		).build();
 	}
 }

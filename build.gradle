@@ -33,6 +33,9 @@ dependencies {
 
     implementation 'org.junit.jupiter:junit-jupiter:5.9.0'
 
+    implementation "com.github.spullara.cli-parser:cli-parser:1.1.5"
+    shadow "com.github.spullara.cli-parser:cli-parser:1.1.5"
+
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
     testCompileOnly 'org.projectlombok:lombok:1.18.24'
@@ -57,7 +60,6 @@ dependencies {
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
     implementation 'org.apache.httpcomponents:httpclient:4.5.13'
     shadow 'org.apache.httpcomponents:httpclient:4.5.13'
-
 
     implementation "com.google.guava:guava:31.1-jre"
     shadow "com.google.guava:guava:31.1-jre"
