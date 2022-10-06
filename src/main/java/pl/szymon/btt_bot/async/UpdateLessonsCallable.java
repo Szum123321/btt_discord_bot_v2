@@ -7,6 +7,7 @@ import pl.szymon.btt_bot.structures.*;
 import pl.szymon.btt_bot.structures.data.Substitution;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -16,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 	private final NetworkContext networkContext = new NetworkContext (
-			"https://lo3gdynia.edupage.org/"
+			URI.create("https://lo3gdynia.edupage.org/")
 	);
 
 	private final String klassName;
@@ -28,10 +29,10 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 		log.info("Starting data update for class: {}", klassName);
 
 		networkContext.init();
-		networkContext.update_gsec(networkContext.getRootUrl());
+		networkContext.update_gsec("");
 		if(Objects.nonNull(password) && Objects.nonNull(login)) networkContext.log_in(login, password);
 
-		networkContext.update_gsec("https://lo3gdynia.edupage.org/timetable/");
+		networkContext.update_gsec("timetable/");
 
 		CompleteTimetable.Builder builder = new CompleteTimetable.Builder();
 
@@ -41,7 +42,7 @@ public class UpdateLessonsCallable implements Callable<CompleteTimetable> {
 		builder.setDateSince(mon);
 		builder.setDateTo(sun);
 
-		TimetableVersion ver = new TimetableVersion(-1, 2022, "", false, mon, sun);
+		TimetableVersion ver = new TimetableVersion(-1, date.getYear(), "", false, mon, sun);
 
 		TypeDeclarationsDownloader.get(networkContext, ver, builder);
 

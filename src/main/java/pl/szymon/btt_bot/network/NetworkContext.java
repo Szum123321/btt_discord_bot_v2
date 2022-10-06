@@ -14,7 +14,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
-import java.net.http.HttpClient;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +32,7 @@ public class NetworkContext {
     private static final String regex = "gsechash=\"";
     private static final Pattern CSRF_PATTERN = Pattern.compile("<input[ a-z\\\"=]*name=\\\"csrfauth\\\"[ a-z\\\"=]*value=\\\"(?<token>[A-Za-z0-9]{10,})");
 
-    final String rootUrl;
-//    final HttpClient httpClient;
+    final URI rootUrl;
 
     final HttpClientContext context = HttpClientContext.create();
 
@@ -49,7 +48,7 @@ public class NetworkContext {
         csrfToken = match.group("token");
     }
 
-    public String GET(String url) throws IOException {
+    public String GET(URI url) throws IOException {
         var req = new HttpGet(url);
         CloseableHttpResponse resp;
         try (var client = HttpClients.createDefault()) {
@@ -62,7 +61,7 @@ public class NetworkContext {
     }
 
     public String update_gsec(String url) throws IOException {
-        String responseBody = GET(url);
+        String responseBody = GET(rootUrl.resolve(url));
 
         if(!responseBody.contains(regex)) throw new NoSuchElementException("Could not find gsec hash. Server responded with: " + responseBody);
 
@@ -73,11 +72,10 @@ public class NetworkContext {
 
     private void printCookies() {
         context.getCookieStore().getCookies().forEach(k -> log.info("{}", k));
-
     }
 
     public void log_in(String login, String password) throws IOException {
-        var req = new HttpPost("https://lo3gdynia.edupage.org/login/edubarLogin.php");
+        var req = new HttpPost(rootUrl.resolve("login/edubarLogin.php"));
         List<NameValuePair> params = new ArrayList<>(3);
         params.add(new BasicNameValuePair("csrfauth", csrfToken));
         params.add(new BasicNameValuePair("username", login));

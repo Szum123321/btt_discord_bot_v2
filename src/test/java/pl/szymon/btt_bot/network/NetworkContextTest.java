@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.CookieManager;
+import java.net.URI;
 import java.net.http.HttpClient;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,7 +16,7 @@ class NetworkContextTest {
     @Test
     void init() throws IOException {
         NetworkContext networkContext = new NetworkContext (
-                "https://lo3gdynia.edupage.org/"
+                URI.create("https://lo3gdynia.edupage.org/")
         );
 
         networkContext.init();
@@ -23,9 +24,9 @@ class NetworkContextTest {
         log.info("Context {}", networkContext);
 
 
-        networkContext.update_gsec("https://lo3gdynia.edupage.org/");
+        networkContext.update_gsec("");
 
-        networkContext.update_gsec("https://lo3gdynia.edupage.org/timetable/");
+        networkContext.update_gsec("timetable/");
 
         log.info("Context {}", networkContext);
     }
