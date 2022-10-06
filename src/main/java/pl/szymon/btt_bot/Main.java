@@ -16,23 +16,21 @@ import java.util.Calendar;
 public class Main {
 	@Argument(alias = "t", description = "discord app token")
 	private static String token = null;
-	@Argument(description = "timetable login")
-	private static String login = null;
-	@Argument(description = "timetable login")
-	private static String password = null;
-
-	@Argument(alias="k", required = true, description = "timetable login")
+	@Argument(alias="k", required = true, description = "klass name")
 	private static String klass = null;
-
-	@Argument(description = "Bot language")
-	private static String lang = "pl_pl";
+	@Argument(description = "timetable login [optional]")
+	private static String login = null;
+	@Argument(description = "timetable password [optional]")
+	private static String password = null;
 
 	public static void main(String[] args) throws LoginException, IOException {
 		Args.parseOrExit(Main.class, args);
-		TranslatableText.setLanguage(lang);
+		String zoneid = Calendar.getInstance().getTimeZone().getID();
+		log.info("Token: {}, Klass: {}, Zone name: {}", token, klass, zoneid);
+		TranslatableText.setLanguage("pl_pl");
 
-		JDA bot = JDABuilder.createDefault(args[0]).addEventListeners(
-				new BotEventListener(token, password, login, Calendar.getInstance().getTimeZone().getID())
+		JDA bot = JDABuilder.createDefault(token).addEventListeners(
+				new BotEventListener(klass, login, password, zoneid)
 		).build();
 	}
 }

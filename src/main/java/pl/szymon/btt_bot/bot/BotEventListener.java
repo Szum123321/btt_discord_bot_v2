@@ -29,10 +29,10 @@ public class BotEventListener extends ListenerAdapter {
     private final BotDataHandler botDataHandler;
     private static ZoneId zoneId;
 
-    public BotEventListener(String klassName, String login, String passowrd, String zoneName) {
+    public BotEventListener(String klassName, String login, String password, String zoneName) {
         registerCommands();
 
-        botDataHandler = new BotDataHandler(klassName, login, passowrd);
+        botDataHandler = new BotDataHandler(klassName, login, password);
 
         zoneId = ZoneId.of(zoneName);
     }
@@ -48,24 +48,20 @@ public class BotEventListener extends ListenerAdapter {
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         Message message = event.getMessage();
 
+        if(event.getAuthor().isBot()) return;
+
         log.trace("Recieved! {} from {}", message.getContentRaw(), message.getAuthor().getName());
-        if(event.getAuthor().isBot())
-            return;
 
         String content = message.getContentRaw();
 
-        if(content.startsWith("!")) {
-            content = message.getContentRaw().substring(1);
-        } else {
-            return;
-        }
+        if(content.startsWith("!")) content = message.getContentRaw().substring(1);
+        else return;
 
         try {
             dispatcher.execute(content, message);
         } catch (CommandSyntaxException e) {
-            if(e.getType() != CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand()) {
+            if(e.getType() != CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownCommand())
                 event.getMessage().getChannel().sendMessage(e.getMessage()).queue();
-            }
         } catch (Exception e) {
             log.error("An exception occurred!", e);
         }

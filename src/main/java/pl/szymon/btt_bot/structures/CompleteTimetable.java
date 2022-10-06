@@ -32,7 +32,6 @@ public class CompleteTimetable {
 
     @Getter(AccessLevel.PRIVATE)
     List<Lesson>[][] lessonList; //5, 15
-    //Map<Integer, List<Lesson>>[] lessonList; //5
 
     @NonFinal
     Map<Integer, LessonGroup>[] lessonGroups;
@@ -55,18 +54,7 @@ public class CompleteTimetable {
                     mapBuilder.put(j, groupBuilder.build());
                 }
             }
-/*
-            lessonList[i].forEach((k, v) -> {
-                LessonGroup.Builder groupBuilder = LessonGroup.builder();
-                groupBuilder.setLessonTime(lessonTimes.get(k));
-                v.forEach(lesson -> {
-                    lesson.setDefinition(this);
-                    groupBuilder.addLesson(lesson);
-                });
 
-                mapBuilder.put(k, groupBuilder.build());
-            });
-*/
             lessonGroups[i] = mapBuilder;
         }
     }

@@ -12,9 +12,6 @@ import org.jsoup.select.Elements;
 import pl.szymon.btt_bot.structures.data.Substitution;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
@@ -23,21 +20,6 @@ import java.util.stream.Collectors;
 @Log4j2
 public class SubstitutionsDownloader {
 	public static List<Substitution> get(NetworkContext networkContext, LocalDate date, String className) throws IOException, InterruptedException, NetworkStatusCodeException, NoSuchElementException {
-		/*HttpRequest httpRequest = HttpRequest.newBuilder()
-				.POST(HttpRequest.BodyPublishers.ofString(
-						"{\"__args\":[null,{\"date\":\"" +
-								date +
-								"\",\"mode\":\"classes\"}],\"__gsh\":\"" +
-								networkContext.getGsecHash() +
-								"\"}"
-						)
-				).uri(URI.create(networkContext.getRootUrl() + "substitution/server/viewer.js?__func=getSubstViewerDayDataHtml"))
-				.build();*/
-		/*HttpResponse<String> httpResponse = networkContext.getHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
-		if(httpResponse.statusCode() != 200) {
-			throw new NetworkStatusCodeException(httpResponse.statusCode());
-		}*/
 		var req = new HttpPost(networkContext.getRootUrl() + "substitution/server/viewer.js?__func=getSubstViewerDayDataHtml");
 		req.setEntity(new StringEntity("{\"__args\":[null,{\"date\":\"" +
 				date +
